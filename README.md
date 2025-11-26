@@ -1,0 +1,1 @@
+This is the repository for the Statistical Data Analysis Project for 2025/26 SDA Bioinformatics course @ MIMUW.
