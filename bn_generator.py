@@ -2,9 +2,12 @@ import networkx as nx
 import boolean as bool
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
-import random
+import numpy as np
 
 from boolean_network import BN
+
+def set_seed(seed: int):
+    np.random.seed(seed)
 
 def generate_functions(
     variables: list[str]
@@ -20,23 +23,37 @@ def generate_functions(
         list[str]: A list of strings representing the Boolean functions for the corresponding nodes
             e.g. '(x0 & ~x1) | x2', where 'x0', 'x1', and 'x2' are node names.
     """
-    
-    # Size of the function expression
-    size = random.choice([1, 2, 3])
-    
-    # Randomly chosen sample of variables
-    chosen = random.sample(variables, size)
-    
-    chosen_negated = [('~' if random.getrandbits(1) else '') + v for v in chosen]
-    
-    if size == 1:
-        expr = chosen_negated[0]
-    elif size == 2:
-        op = random.choice(['&', '|'])
-        expr = f'({chosen_negated[0]} {op} {chosen_negated[1]})'
-    else:
-        # TODO - Uniformly generate functions that use all three variables and are unambiguous
-        pass        
+    funs = []
+    for child in variables:
+        # Generate parent list
+        size = np.random.randint(1, 4)
+        possible_parents = variables[:]
+        possible_parents.remove(child)
+        parents = []
+        for _ in range(size):
+            par = str(np.random.choice(possible_parents))
+            parents.append(par)
+            possible_parents.remove(par)
+        
+        # Generate value table for a function.
+        values = [np.random.randint(0, 2) for _ in range(2 ** size)]
+
+        # Generate equal clause using DNF form
+        clause_parts = []
+        for i, val in enumerate(values):
+            if val == 1:
+                vars = []
+                for e in range(size):
+                    if i & 2 ** e:
+                        vars.append(parents[e])
+                    else:
+                        vars.append("~" + parents[e])
+                clause_parts.append("(" + " & ".join(vars) + ")")
+        funs.append(" | ".join(clause_parts) if len(clause_parts) > 0 else ("FALSE"))
+        print(f"\n----\nFunction for {child} with parents {parents} has values {values}. Function clause is {funs[-1]}.")
+    return funs
+
+          
 
 def generate_bn(
     size: int
@@ -54,5 +71,9 @@ def generate_bn(
     nodes = [f"x{i}" for i in range(size)]
     
     functions = generate_functions(nodes)
+    print(len(functions))
+    print(functions)
     
-    return BN(nodes, functions)
+    exit()
+
+bn = generate_bn(5)
