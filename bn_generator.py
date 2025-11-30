@@ -71,9 +71,5 @@ def generate_bn(
     nodes = [f"x{i}" for i in range(size)]
     
     functions = generate_functions(nodes)
-    print(len(functions))
-    print(functions)
-    
-    exit()
 
-bn = generate_bn(5)
+    return BN(nodes, functions)
