@@ -3,8 +3,18 @@ import boolean as bool
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
 import numpy as np
+import logging
+import os
 
 from boolean_network import BN
+
+os.makedirs("logs", exist_ok=True)
+logging.basicConfig(
+    filename="logs/gen.log",
+    filemode="w",
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(message)s"
+)
 
 def set_seed(seed: int):
     np.random.seed(seed)
@@ -50,7 +60,7 @@ def generate_functions(
                         vars.append("~" + parents[e])
                 clause_parts.append("(" + " & ".join(vars) + ")")
         funs.append(" | ".join(clause_parts) if len(clause_parts) > 0 else ("FALSE"))
-        print(f"\n----\nFunction for {child} with parents {parents} has values {values}. Function clause is {funs[-1]}.")
+        logging.info(f"Function for {child} with parents {parents} has values {values}. Function clause is {funs[-1]}.")
     return funs
 
           
@@ -73,3 +83,5 @@ def generate_bn(
     functions = generate_functions(nodes)
 
     return BN(nodes, functions)
+
+bn = generate_bn(5)
