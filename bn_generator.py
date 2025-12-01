@@ -49,11 +49,13 @@ def generate_functions(
         values = [np.random.randint(0, 2) for _ in range(2 ** size)]
 
         # Generate equal clause using DNF form
+        # For each row with value = True we generate a clause (var1 & var2 & var3)
         clause_parts = []
         for i, val in enumerate(values):
             if val == 1:
                 vars = []
                 for e in range(size):
+                    # Iterator e is used as a bit mask for current variable assignment.
                     if i & 2 ** e:
                         vars.append(parents[e])
                     else:
