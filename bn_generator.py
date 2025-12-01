@@ -3,28 +3,24 @@ import boolean as bool
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
 import numpy as np
+import numpy.random as r
 import logging
 import os
+import json
+import argparse
 
 from boolean_network import BN
 
-os.makedirs("logs", exist_ok=True)
-logging.basicConfig(
-    filename="logs/gen.log",
-    filemode="w",
-    level=logging.INFO,
-    format="%(asctime)s [%(levelname)s] %(message)s"
-)
-
 def set_seed(seed: int):
-    np.random.seed(seed)
+    r.seed(seed)
 
 def generate_functions(
     variables: list[str]
 ) -> list[str]:
     """
     This function uniformly generates a random combination of functions for each of the variables.
-    Each of the functions has between 1 to 3 variables influencing the result variable
+    Each of the functions has between 1 to 3 parent variables.
+    Generation is done using value table and DNF form for generating equal clause.
 
     Args:
         variables (list[str]): list of variables as strings
@@ -36,20 +32,19 @@ def generate_functions(
     funs = []
     for child in variables:
         # Generate parent list
-        size = np.random.randint(1, 4)
+        size = r.randint(1, 4)
         possible_parents = variables[:]
         possible_parents.remove(child)
         parents = []
         for _ in range(size):
-            par = str(np.random.choice(possible_parents))
+            par = str(r.choice(possible_parents))
             parents.append(par)
             possible_parents.remove(par)
         
         # Generate value table for a function.
-        values = [np.random.randint(0, 2) for _ in range(2 ** size)]
+        values = [r.randint(0, 2) for _ in range(2 ** size)]
 
         # Generate equal clause using DNF form
-        # For each row with value = True we generate a clause (var1 & var2 & var3)
         clause_parts = []
         for i, val in enumerate(values):
             if val == 1:
@@ -69,7 +64,7 @@ def generate_functions(
 
 def generate_bn(
     size: int
-) -> BN:
+) -> tuple[list[str], list[str]]:
     """
     This function generates a random boolean network of size n using generate_functions() within to generate a random combination of functions
 
@@ -84,6 +79,46 @@ def generate_bn(
     
     functions = generate_functions(nodes)
 
-    return BN(nodes, functions)
+    return nodes, functions
 
-bn = generate_bn(5)
+def generate_ds(
+        count: int,
+        filename: str
+):
+    """
+    This function generates batch of boolean networks of random sizes and stores the result in a .json file for further use.
+
+    Args:
+        count (int): Number of BNs to generate
+        filename (str): Name file for the dataset to be generated.
+    """
+    bns = []
+    for _ in range(count):
+        size = r.randint(5, 17)
+        bns.append(generate_bn(size))
+    
+    with open(filename, "w") as f:
+        json.dump(bns, f, indent=2)
+    
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("count", type=int, help="Number of generated boolean networks")
+    parser.add_argument("filename", type=str, help="Dataset filename (.json format)")
+    parser.add_argument("--seed", type=int, default=42, help="RNG seed")
+
+    args = parser.parse_args()
+    set_seed(args.seed)
+
+    # Set up logging
+    os.makedirs("logs", exist_ok=True)
+    logging.basicConfig(
+        filename="logs/gen.log",
+        filemode="w",
+        level=logging.INFO,
+        format="%(asctime)s [%(levelname)s] %(message)s"
+    )
+
+    generate_ds(args.count, args.filename)
+
+if __name__ == "__main__":
+    main()
