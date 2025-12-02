@@ -33,13 +33,8 @@ def generate_functions(
     for child in variables:
         # Generate parent list
         size = r.randint(1, 4)
-        possible_parents = variables[:]
-        possible_parents.remove(child)
-        parents = []
-        for _ in range(size):
-            par = str(r.choice(possible_parents))
-            parents.append(par)
-            possible_parents.remove(par)
+        possible_parents = [v for v in variables if v != child]
+        parents = r.choice(possible_parents, size, replace=False)
         
         # Generate value table for a function.
         values = [r.randint(0, 2) for _ in range(2 ** size)]
@@ -103,8 +98,8 @@ def generate_ds(
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("count", type=int, help="Number of generated boolean networks")
-    parser.add_argument("filename", type=str, help="Dataset filename (.json format)")
-    parser.add_argument("--seed", type=int, default=42, help="RNG seed")
+    parser.add_argument("ds_filename", type=str, help="Dataset filename (.json format)")
+    parser.add_argument("-s", "--seed", type=int, default=42, help="RNG seed")
 
     args = parser.parse_args()
     set_seed(args.seed)
@@ -118,7 +113,7 @@ def main():
         format="%(asctime)s [%(levelname)s] %(message)s"
     )
 
-    generate_ds(args.count, args.filename)
+    generate_ds(args.count, args.ds_filename)
 
 if __name__ == "__main__":
     main()
