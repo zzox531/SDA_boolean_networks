@@ -92,13 +92,15 @@ def generate_ds(
         size = r.randint(5, 17)
         bns.append(generate_bn(size))
     
+    os.makedirs(os.path.dirname(filename), exist_ok=True)
+    
     with open(filename, "w") as f:
         json.dump(bns, f, indent=2)
     
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("count", type=int, help="Number of generated boolean networks")
-    parser.add_argument("ds_filename", type=str, help="Dataset filename (.json format)")
+    parser.add_argument("-c", "--count", type=int, default=100, help="Number of generated boolean networks")
+    parser.add_argument("-ds-path", "--ds-path", type=str, default="datasets/boolean_networks.json", help="Dataset filename (.json format)")
     parser.add_argument("-s", "--seed", type=int, default=42, help="RNG seed")
 
     args = parser.parse_args()
@@ -107,13 +109,13 @@ def main():
     # Set up logging
     os.makedirs("logs", exist_ok=True)
     logging.basicConfig(
-        filename="logs/gen.log",
+        filename="logs/bn_gen.log",
         filemode="w",
         level=logging.INFO,
         format="%(asctime)s [%(levelname)s] %(message)s"
     )
 
-    generate_ds(args.count, args.ds_filename)
+    generate_ds(args.count, args.ds_path)
 
 if __name__ == "__main__":
     main()

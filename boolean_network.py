@@ -19,7 +19,7 @@ class BN():
         Returns:
             tuple[int, ...]: A tuple of 0s and 1s representing the Boolean network state.
     """
-    def __int_to_state(self, x: int) -> tuple[int, ...]:
+    def int_to_state(self, x: int) -> tuple[int, ...]:
 
         binary_str = format(x,'0'+str(self.num_nodes)+'b')
         state = [int(char) for char in binary_str]
@@ -37,7 +37,7 @@ class BN():
             str: A binary string representing the Boolean network state
     """
     @staticmethod
-    def __state_to_binary_str(state: tuple[int, ...]) -> str:
+    def state_to_binary_str(state: tuple[int, ...]) -> str:
         bin_str = ''
         for bit in state:
             bin_str += str(bit)
@@ -81,11 +81,7 @@ class BN():
             set[tuple[int, ...]]: A set of tuples of 0s and 1s representing the Boolean network states reachable
                 in one step from the given state.
     """
-    def get_neighbor_states(self, state: tuple[int, ...]) -> set[tuple[int, ...]]:
-        
-        ################################################################################
-        # Please implement your solution here
-        
+    def get_neighbor_states_async(self, state: tuple[int, ...]) -> set[tuple[int, ...]]:
         kwargs = {}
         for i in range(self.num_nodes):
             kwargs[self.node_names[i]] = state[i]
@@ -93,14 +89,37 @@ class BN():
         neighbor_states = set()
 
         for i, func in enumerate(self.functions):
-            new_value = int(func(**kwargs))
+            # Check if the function is TRUE / FALSE, it then doesn't need to be called
+            if (func == self.__bool_algebra.TRUE):
+                new_value = 1
+            elif(func == self.__bool_algebra.FALSE):
+                new_value = 0
+            else:
+                new_value = int(func(**kwargs))
             new_tuple = list(state)
             new_tuple[i] = new_value
             neighbor_states.add(tuple(new_tuple))
 
         return neighbor_states
-        ################################################################################
 
+    def get_neighbor_state_sync(self, state: tuple[int, ...]) -> tuple[int, ...]:
+        kwargs = {}
+        for i in range(self.num_nodes):
+            kwargs[self.node_names[i]] = state[i]
+        
+        new_tuple = list(state)
+
+        for i, func in enumerate(self.functions):
+            # Check if the function is TRUE / FALSE, it then doesn't need to be called
+            if (func == self.__bool_algebra.TRUE):
+                new_value = 1
+            elif(func == self.__bool_algebra.FALSE):
+                new_value = 0
+            else:
+                new_value = int(func(**kwargs))
+            new_tuple[i] = new_value
+
+        return tuple(new_tuple)
     
     """
     Generates the asynchronous state transition system of the Boolean network.
@@ -112,17 +131,13 @@ class BN():
     def generate_state_transition_system(self) -> nx.DiGraph:
         
         G = nx.DiGraph()
-        G.add_nodes_from([self.__int_to_state(i) for i in range(2**self.num_nodes)])
+        G.add_nodes_from([self.int_to_state(i) for i in range(2**self.num_nodes)])
         
         for state_num in range(2**self.num_nodes):
-            state = self.__int_to_state(state_num)
-            neighbor_states = self.get_neighbor_states(state)
+            state = self.int_to_state(state_num)
+            neighbor_states = self.get_neighbor_states_async(state)
             for neighbor in neighbor_states:
                 G.add_edge(state, neighbor)
-
-        ################################################################################
-        # Please implement your solution here
-        ################################################################################
 
         return G
 
