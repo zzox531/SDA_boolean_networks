@@ -99,7 +99,7 @@ def generate_ds(
     
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("-c", "--count", type=int, default=100, help="Number of generated boolean networks")
+    parser.add_argument("-c", "--count", type=int, default=5, help="Number of generated boolean networks")
     parser.add_argument("-ds-path", "--ds-path", type=str, default="datasets/boolean_networks.json", help="Dataset filename (.json format)")
     parser.add_argument("-s", "--seed", type=int, default=42, help="RNG seed")
 
