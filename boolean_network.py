@@ -168,7 +168,7 @@ class BN():
         Returns:
             None
     """
-    def draw_state_transition_system(self, highlight_attractors: bool = True) -> None:
+    def draw_state_transition_system(self, path: str, highlight_attractors: bool = True) -> None:
 
         # The color used for non-attractor states in the state transition system
         NON_ATTRACTOR_STATE_COLOR = 'grey'
@@ -199,9 +199,10 @@ class BN():
         # PyGraphviz (https://pygraphviz.github.io/)
         nx.draw_networkx(sts,
                          with_labels=True,
-                         pos=nx.spring_layout(sts),
+                         pos=nx.spring_layout(sts, k=3.0, iterations=200, seed=42),
                          node_color = node_colors,
                          font_size=8)
 
-        plt.show()
+        plt.savefig(path, dpi=1000, bbox_inches="tight")
+        plt.close()
 

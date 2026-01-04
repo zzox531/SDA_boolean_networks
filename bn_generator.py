@@ -1,5 +1,5 @@
 import networkx as nx
-import boolean as bool
+import boolean as Bool
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
 import numpy as np
@@ -78,7 +78,9 @@ def generate_bn(
 
 def generate_ds(
         count: int,
-        filename: str
+        filename: str,
+        visuals: bool,
+        visual_dir: str
 ):
     """
     This function generates batch of boolean networks of random sizes and stores the result in a .json file for further use.
@@ -96,12 +98,21 @@ def generate_ds(
     
     with open(filename, "w") as f:
         json.dump(bns, f, indent=2)
+
+    if visuals:
+        os.makedirs(os.path.dirname(visual_dir), exist_ok=True)
+        BNs = [BN(nodes, funcs) for nodes, funcs in bns]
+        for i, netw in enumerate(BNs):
+            if netw.num_nodes < 6:
+                netw.draw_state_transition_system(f"{visual_dir}BN{i}.png")
     
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("-c", "--count", type=int, default=5, help="Number of generated boolean networks")
-    parser.add_argument("-ds-path", "--ds-path", type=str, default="datasets/boolean_networks.json", help="Dataset filename (.json format)")
+    parser.add_argument("-d", "--ds-path", type=str, default="datasets/boolean_networks.json", help="Dataset filename (.json format)")
     parser.add_argument("-s", "--seed", type=int, default=42, help="RNG seed")
+    parser.add_argument("--draw", action=argparse.BooleanOptionalAction, help="Generate visual representation of BNs")
+    parser.add_argument("--draw-path", type=str, default="visual/", help="Directory for visual representation of BNs")
 
     args = parser.parse_args()
     set_seed(args.seed)
@@ -115,7 +126,7 @@ def main():
         format="%(asctime)s [%(levelname)s] %(message)s"
     )
 
-    generate_ds(args.count, args.ds_path)
+    generate_ds(args.count, args.ds_path, args.draw, args.draw_path)
 
 if __name__ == "__main__":
     main()
