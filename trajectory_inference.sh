@@ -1,6 +1,6 @@
 #!/bin/bash
 
-if [ $# -ne 2 ]; then
+if [ $# -ne 3 ]; then
     echo "Usage: $0 <output_prefix> <test_prefix> <scoring criterion: BDE | MDL>"
     exit 1
 fi
