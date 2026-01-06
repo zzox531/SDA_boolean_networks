@@ -51,7 +51,10 @@ def generate_functions(
                     else:
                         vars.append("~" + parents[e])
                 clause_parts.append("(" + " & ".join(vars) + ")")
-        funs.append(" | ".join(clause_parts) if len(clause_parts) > 0 else ("FALSE"))
+        if len(clause_parts) > 0:
+            funs.append(" | ".join(clause_parts))
+        else:
+            funs.append("(" + ") & (".join(parents) + ") & FALSE")
         logging.info(f"Function for {child} with parents {parents} has values {values}. Function clause is {funs[-1]}.")
     return funs
 
