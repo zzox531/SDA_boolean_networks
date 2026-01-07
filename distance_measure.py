@@ -56,6 +56,8 @@ def parse_source(
     
     BNs = []
     for vars, funs in bns_data:
+        sort = sorted(list(zip(vars, funs)), key=lambda x:x[0])
+        vars, funs = map(list, zip(*sort))
         bn_struct = BN(vars, funs)
         parents = {v: list(set(re.findall("x[0-9]*", f))) for v, f in zip(vars, funs)}
         children = {v: [w for w in vars if v in parents[w]] for v in vars}
@@ -136,7 +138,9 @@ def parse_infer(
                             else:
                                 clause_vars.append("~" + v_pars[e])
                         clause_parts.append("(" + " & ".join(clause_vars) + ")")
-                if len(clause_parts) > 0:
+                if len(parents[v]) == 0:
+                    funs.append("TRUE" if values[v_num][0] == 1 else "FALSE")
+                elif len(clause_parts) > 0:
                     funs.append(" | ".join(clause_parts))
                 else:
                     funs.append("(" + ") & (".join(v_pars) + ") & FALSE")
@@ -163,36 +167,44 @@ def measure_distance(source_path: str, infer_path: str):
     for num, (s, i) in enumerate(zip(source_BNs, infer_BNs)):
         print('\n==== TEST START ====\n\n')
         print(f'Network pair no. {num}\n')
+
         # Precision, Recall, F1 on parent sets.
-        sum_prec = 0
-        sum_recall = 0
+        tp = 0
+        fn = 0
+        fp = 0
         for v in s.vars:
-            par_s = s.parents[v]
-            par_i = i.parents[v]
-            sum_prec   += len(set(par_s) & set(par_i)) / len(par_s)
-            sum_recall += len(set(par_s) & set(par_i)) / len(par_i)
-        sum_prec /= len(s.vars)
-        sum_recall /= len(s.vars)
-        sum_f1 = (2 * sum_prec * sum_recall) / (sum_recall + sum_prec)
+            par_s = set(s.parents[v])
+            par_i = set(i.parents[v])
+            tp += len(par_s & par_i)
+            fp += len(par_i - par_s)
+            fn += len(par_s - par_i)
+        
+        prec   = tp / (tp + fp)
+        recall = tp / (tp + fn)
+        f1     = (2 * prec * recall) / (prec + recall)
         print(
-            f"Scores on parent sets: Precision = {sum_prec}, "
-            f"Recall = {sum_recall}, F1 = {sum_f1}\n"
+            f"Scores on parent sets: Precision = {prec}, "
+            f"Recall = {recall}, F1 = {f1}\n"
         )
 
         # Precision, Recall, F1 on Markov Blankets
-        sum_prec = 0
-        sum_recall = 0
+        tp = 0
+        fn = 0
+        fp = 0
         for v in s.vars:
-            par_s = s.MBs[v]
-            par_i = i.MBs[v]
-            sum_prec   += len(set(par_s) & set(par_i)) / len(par_s)
-            sum_recall += len(set(par_s) & set(par_i)) / len(par_i)
-        sum_prec /= len(s.vars)
-        sum_recall /= len(s.vars)
-        sum_f1 = (2 * sum_prec * sum_recall) / (sum_recall + sum_prec)
+            mb_s = set(s.MBs[v])
+            mb_i = set(i.MBs[v])
+            
+            tp += len(mb_s & mb_i)
+            fp += len(mb_i - mb_s)
+            fn += len(mb_s - mb_i)
+
+        prec   = tp / (tp + fp)
+        recall = tp / (tp + fn)
+        f1     = (2 * prec * recall) / (prec + recall)
         print(
-            f"Scores on Markov Blankets: Precision = {sum_prec}, "
-            f"Recall = {sum_recall}, F1 = {sum_f1}\n"
+            f"Scores on Markov Blankets: Precision = {prec}, "
+            f"Recall = {recall}, F1 = {f1}\n"
         )
 
         # % of correct synchronous transitions
@@ -212,10 +224,10 @@ def measure_distance(source_path: str, infer_path: str):
         acc = good_pairs / (2 ** state_size)
         print(f"Accuracy of next state in synchronous mode = {acc}\n")
 
-
         # Precision, Recall, F1 on reachable states in async mode
-        async_sum_prec = 0
-        async_sum_recall = 0
+        tp = 0
+        fn = 0
+        fp = 0
         state_size = len(s.vars)
         for cnt in range(2 ** state_size):
             state = []
@@ -227,15 +239,16 @@ def measure_distance(source_path: str, infer_path: str):
 
             async_n_s = s.BN_struct.get_neighbor_states_async(state)
             async_n_i = i.BN_struct.get_neighbor_states_async(state)
-            async_sum_prec   += len(async_n_s & async_n_i) / len(async_n_s)
-            async_sum_recall += len(async_n_s & async_n_i) / len(async_n_i)
+            tp += len(async_n_s & async_n_i)
+            fp += len(async_n_i - async_n_s)
+            fn += len(async_n_s - async_n_i)
 
-        async_sum_prec /= (2 ** state_size)
-        async_sum_recall /= (2 ** state_size)
-        sum_f1 = (2 * async_sum_prec * async_sum_recall) / (async_sum_recall + async_sum_prec)
+        prec   = tp / (tp + fp)
+        recall = tp / (tp + fn)
+        f1     = (2 * prec * recall) / (prec + recall)
         print(
-            f"Scores on Asynchronous Neighbour States: Precision = {async_sum_prec}, "
-            f"Recall = {async_sum_recall}, F1 = {sum_f1}\n"
+            f"Scores on asynchronous neighbor sets: Precision = {prec}, "
+            f"Recall = {recall}, F1 = {f1}\n"
         )
 
 
