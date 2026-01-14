@@ -2,11 +2,11 @@
 
 set -e
 
-# configs: "fr_lo fr_hi len_lo len_hi sync_no async_no test_prefix seed"
+# configs: "fr_lo fr_hi len_lo len_hi sync_no async_no test_prefix seed criterion"
 configs=(
     "1 1 10 50 100 0 test0 42 BDE"
-    # "1 1 10 50 0 50 test1 42 BDE"
-    # "1 1 10 50 50 0 test2 42 BDE"
+    "1 1 10 50 0 50 test1 42 BDE"
+    "1 1 10 50 50 0 test2 42 BDE"
 )
 BN_JSON="datasets/boolean_networks.json"
 
