@@ -194,7 +194,7 @@ The update mode is determined per trajectory based on whether it belongs to the 
 
 Each trajectory is generated step-by-step, but states are recorded only every $f$-th step, where:
 
-$f \sim \mathcal{U}(\texttt{frequency\_low}, \texttt{frequency\_high})$
+$f \sim \mathcal{U}(\texttt{FrequencyLow}, \texttt{FrequencyHigh})$
 
 Trajectory generation continues until the required number of recorded states reaches the randomly sampled trajectory length.
 
