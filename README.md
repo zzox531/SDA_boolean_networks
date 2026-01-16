@@ -38,7 +38,7 @@ Arguments to be passed to the ```bn_generator.py``` are:
 - `-s`/`--seed`: `(int)` -  a random seed to be set within the generator, such that the execution of the code is replicable
 - `-c`/`--count`: `(int)` - number of boolean networks to be generated
 - `-d`/`--ds-path`: `(str)` - dataset filename path - a relative path leading to a `.json` file where the boolean networks are saved
-- `--draw` - An option wether to generate visual representation of BNs. If set, saves the visuals for networks of size = 5 (higher numbers might be unreadable).
+- `--draw` - An option whether to generate visual representation of BNs. If set, saves the visuals for networks of size = 5 (higher numbers might be unreadable).
 - `--draw-path`: `(str)`- A relative directory where the visual representations will be saved if `--draw` is set.
 
 For each BN to be generated, the script samples a random number from 5 to 16 to be the number of nodes for the network. 
