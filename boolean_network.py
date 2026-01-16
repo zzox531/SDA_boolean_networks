@@ -56,7 +56,7 @@ class BN():
         
     """
     def __init__(self, list_of_nodes: list[str], list_of_functions: list[str]):
-        
+                
         self.num_nodes = len(list_of_nodes)
 
         self.node_names = list_of_nodes
@@ -70,6 +70,57 @@ class BN():
         for fun in list_of_functions:
             self.functions.append(self.__bool_algebra.parse(fun,simplify=True))
 
+        self.attractors_async = self.get_attractors_async()
+        self.attractor_set_async = set()
+        for attr in self.attractors_async:
+            for state in attr:
+                self.attractor_set_async.add(state)
+                
+        self.attractors_sync = self.get_attractors_sync()
+        self.attractor_set_sync = set()
+        for attr in self.attractors_sync:
+            for state in attr:
+                self.attractor_set_sync.add(state)
+                
+        self.parents_sync = {}
+        self.parents_async = {}
+                
+        for i in range(2**self.num_nodes):
+            tpl = []
+            for j in range(self.num_nodes):
+                if 2**j & i != 0:
+                    tpl.append(1)
+                else:
+                    tpl.append(0)
+            tpl = tpl[::-1]
+            tpl = tuple(tpl)
+            
+            # Sync parents
+            neighbor_sync = self.get_neighbor_state_sync(tpl)
+            if neighbor_sync in self.parents_sync:
+                self.parents_sync[neighbor_sync].append(tpl)
+            else:
+                self.parents_sync[neighbor_sync] = [tpl]
+                
+            # Async parents
+            neighbors_async = self.get_neighbor_states_async(tpl)
+            for state in neighbors_async:
+                if state in self.parents_async:
+                    self.parents_async[state].append(tpl)
+                else:
+                    self.parents_async[state] = [tpl]
+                                
+    def sample_parent_state_sync(self, state: tuple[int, ...]) -> set[tuple[int, ...]]:
+        
+        if state not in self.parents_sync:
+            return None
+        return random.choice(self.parents_sync[state])
+
+    def sample_parent_state_async(self, state: tuple[int, ...]) -> set[tuple[int, ...]]:
+        if state not in self.parents_async:
+            return None
+        return random.choice(self.parents_async[state])
+        
 
     """
     Computes the states reachable from the given state in one step of asynchronous update.
@@ -148,7 +199,7 @@ class BN():
         Returns:
             list[set[tuple[int]]]: A list of asynchronous attractors. Each attractor is a set of states.
     """
-    def get_attractors(self) -> list[set[tuple[int]]]:
+    def get_attractors_async(self) -> list[set[tuple[int]]]:
         sts = self.generate_state_transition_system()
 
         attractors = []
@@ -157,7 +208,59 @@ class BN():
 
         return attractors
     
+    """
+    Computes the synchronous attractors of the Boolean network.
+    
+        Returns:
+            list[set[tuple[int]]]: A list of synchronous attractors. Each attractor is a set of states.    
+    """
+    def get_attractors_sync(self) -> list[set[tuple[int]]]:        
+        attractors = []
+        attractor_states = set()
+        for i in range(2**self.num_nodes):
+            state = self.int_to_state(i)
+            visited = {}
+            current_state = state
+            while current_state not in visited:
+                visited[current_state] = True
+                current_state = self.get_neighbor_state_sync(current_state)
+            # We've found a cycle, extract it
+            if current_state in attractor_states:
+                continue
+            cycle_start_state = current_state
+            cycle_states = set()
+            cycle_states.add(cycle_start_state)
+            current_state = self.get_neighbor_state_sync(cycle_start_state)
+            while current_state != cycle_start_state:
+                cycle_states.add(current_state)
+                current_state = self.get_neighbor_state_sync(current_state)
+            # Check if the cycle is already in the attractors list
+            attractors.append(cycle_states)
+            for s in cycle_states:
+                attractor_states.add(s)
+        return attractors
+        
+            
+    
+    """
+    Computes wether a state is within any attractor of the Boolean network.
+    
+        Args:
+            state (tuple[int, ...]): A tuple of 0s and 1s representing the Boolean network state.
+            synchronous (bool, optional): Whether to check for synchronous attractor. Defaults to True.
 
+        Returns:
+            bool: True / False wether the state is an attractor.
+    """
+    def is_attractor(self, state: tuple[int, ...], synchronous: bool = True) -> bool:
+        if synchronous:
+            if state in self.attractor_set_sync:
+                return True
+        else:
+            if state in self.attractor_set_async:
+                return True
+        return False
+    
     """
     Draws the state transition system.
 
@@ -176,7 +279,7 @@ class BN():
         sts = self.generate_state_transition_system()
 
         if highlight_attractors:
-            attractors = self.get_attractors()
+            attractors = self.get_attractors_async()
 
             sts_nodes = list(sts.nodes)
 

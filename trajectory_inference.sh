@@ -20,6 +20,6 @@ find ./datasets -type f -name "${test_prefix}_bn_*_trajectories.txt" | while rea
         output_file_sif="inference/sif/${output_prefix}_${num}.sif"
         output_file_bif="inference/bif/${output_prefix}_${num}.bif"
         output_file_cpd="inference/cpd/${output_prefix}_${num}.cpd"
-        bnf -e "$file" -n "$output_file_sif" -b "$output_file_bif" -c "$output_file_cpd" -v -s "$criterion"
+        bnf -e "$file" -n "$output_file_sif" -b "$output_file_bif" -c "$output_file_cpd" -v -s "$criterion" -g -l 3 -k 16
     fi
 done
