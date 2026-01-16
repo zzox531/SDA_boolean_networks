@@ -18,6 +18,19 @@ to reconstruct the structure of a network model representing a real-life biologi
 Regarding the code used for performing the analysis, it is all published in a github repository 
 under [this](https://github.com/zzox531/SDA_boolean_networks) link.
 
+# Prerequisites
+
+This project uses [`uv`](https://github.com/astral-sh/uv) for environment management and package installation.
+
+To install all dependencies:
+```bash
+uv sync
+```
+
+To run a Python script within this environment:
+```bash
+uv run <script_name.py> [arguments]
+```
 # Part I
 
 ## Subtask 1.
@@ -30,7 +43,7 @@ be generated at random.
 This functionality is provided by the ```bn_generator.py``` script. It's example usage is:
 
 ```sh
-python3 bn_generator.py -s 2137 -c 5 -d datasets/boolean_networks.json --draw --draw-path ./visual
+uv run bn_generator.py -s 2137 -c 5 -d datasets/boolean_networks.json --draw --draw-path ./visual
 ```
 
 Arguments to be passed to the ```bn_generator.py``` are:
@@ -106,7 +119,7 @@ An example of such a file format is:
 Second subtask was to simulate trajectories of the generated networks in both synchronous and asynchronous modes to create datasets. This functionality is provided by the ```trajectory_generator.py``` python script. Its' example usage is: 
 
 ```sh
-python3 trajectory_generator.py \
+uv run trajectory_generator.py \
     -fr-lo 1 \
     -fr-hi 5 \
     -len-lo 10 \
