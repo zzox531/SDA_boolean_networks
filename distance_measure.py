@@ -12,6 +12,7 @@ import re
 import itertools
 
 from boolean_network import BN
+from bn_generator import load_bn_from_path, get_bn_paths
 
 class BN_params():
     """
@@ -39,7 +40,7 @@ class BN_params():
 
 def parse_source(
     source_path: str
-) -> list[BN_params]:
+) -> BN_params:
     """
     This function parses all Boolean Networks saved in source_path. The format
     allows for easy conversion to BN class.
@@ -48,42 +49,39 @@ def parse_source(
         source_path (str): Path to a file containting source BNs description
     
     Returns:
-        list[BN_params]: List of identified BNs with additional details
+        BN_params: Identified BN with additional details
     """
     logging.info(f"Parsing BNs from file {source_path}")
-    with open(source_path, "r") as f:
-        bns_data = json.load(f)
+    bn_struct = load_bn_from_path(source_path)
     
-    BNs = []
-    for vars, funs in bns_data:
-        sort = sorted(list(zip(vars, funs)), key=lambda x:x[0])
-        vars, funs = map(list, zip(*sort))
-        bn_struct = BN(vars, funs)
-        parents = {v: list(set(re.findall("x[0-9]*", f))) for v, f in zip(vars, funs)}
-        children = {v: [w for w in vars if v in parents[w]] for v in vars}
-        MBs = {v: list(
-                  set(itertools.chain(
-                    parents[v], 
-                    children[v], 
-                    itertools.chain.from_iterable(parents[x] for x in children[v])
-                  )) - {v}
-                  )
-              for v in vars}
-        logging.info(
-            f"Received following BN:\n"
-            f"\tVariables: {vars}\n"
-            f"\tParents: {parents}\n"
-            f"\tChildren: {children}\n"
-            f"\tMarkov Blankets: {MBs}\n"
-            f"Passing the BN to compare."
-        )
-        BNs.append(BN_params(bn_struct, vars, parents, MBs))
-    return BNs
+    print(bn_struct.node_names)
+    print(bn_struct.functions_str)
+    sort = sorted(list(zip(bn_struct.node_names, bn_struct.functions_str)), key=lambda x:x[0])
+    vars, funs = map(list, zip(*sort))
+    parents = {v: list(set(re.findall("x[0-9]*", f))) for v, f in zip(vars, funs)}
+    children = {v: [w for w in vars if v in parents[w]] for v in vars}
+    MBs = {v: list(
+                set(itertools.chain(
+                parents[v], 
+                children[v], 
+                itertools.chain.from_iterable(parents[x] for x in children[v])
+                )) - {v}
+                )
+            for v in vars}
+    logging.info(
+        f"Received following BN:\n"
+        f"\tVariables: {vars}\n"
+        f"\tParents: {parents}\n"
+        f"\tChildren: {children}\n"
+        f"\tMarkov Blankets: {MBs}\n"
+        f"Passing the BN to compare."
+    )
+    return BN_params(bn_struct, vars, parents, MBs)
 
 def parse_infer(
         infer_path: str, 
-        dbn_num: int
-    ) -> list[BN_params]:
+        bn_id: int
+    ) -> BN_params:
     """
     This function parses Dynamic Bayesian Networks inferred by BNFinder. It uses
     cpd format. It also computes additional details to make them similar to BN syntax.
@@ -95,78 +93,78 @@ def parse_infer(
             live in individual files.
     
     Returns:
-        list[BN_params]: List of inferred BNs with additional details.
+        BN_params: inferred BN with additional details.
     """
-    BNs = []
-    for i in range(dbn_num):
-        print(f"./inference/cpd/{infer_path}_{i}.cpd")
-        with open(f"./inference/cpd/{infer_path}_{i}.cpd", 'r') as f:
-            data = f.read()
-            netw = eval(data)
-            vars = list(netw.keys())
-            parents = {v: netw[v]['pars'] for v in vars}
-            children = {v: [w for w in vars if v in parents[w]] for v in vars}
-            MBs = {v: list(
-                    set(itertools.chain(
-                        parents[v], 
-                        children[v], 
-                        itertools.chain.from_iterable(parents[x] for x in children[v])
-                    )) - {v}
-                    )
-                for v in vars}
+    print(f"./inference/cpd/{infer_path}_{bn_id}.cpd")
+    with open(f"./inference/cpd/{infer_path}_{bn_id}.cpd", 'r') as f:
+        data = f.read()
+        netw = eval(data)
+        vars = list(netw.keys())
+        parents = {v: netw[v]['pars'] for v in vars}
+        children = {v: [w for w in vars if v in parents[w]] for v in vars}
+        MBs = {v: list(
+                set(itertools.chain(
+                    parents[v], 
+                    children[v], 
+                    itertools.chain.from_iterable(parents[x] for x in children[v])
+                )) - {v}
+                )
+            for v in vars}
 
-            values = [
-                [
-                    max(d, key=d.get) for k, d in netw[v]['cpds'].items() if k != None
-                ] for v in vars
-            ]
-            assert(not any(None in v for v in values))
+        values = [
+            [
+                max(d, key=d.get) for k, d in netw[v]['cpds'].items() if k != None
+            ] for v in vars
+        ]
+        assert(not any(None in v for v in values))
 
-            # Inferred clause generation (from bn_generator)
-            funs = []
-            for v_num, v in enumerate(vars):
-                size = len(parents[v])
-                v_pars = parents[v][::-1]
-                clause_parts = []
-                for i, val in enumerate(values[v_num]):
-                    if val == 1:
-                        clause_vars = []
-                        for e in range(size):
-                            # Iterator e is used as a bit mask for current variable assignment.
-                            if i & 2 ** e:
-                                clause_vars.append(v_pars[e])
-                            else:
-                                clause_vars.append("~" + v_pars[e])
-                        clause_parts.append("(" + " & ".join(clause_vars) + ")")
-                if len(parents[v]) == 0:
-                    funs.append("TRUE" if values[v_num][0] == 1 else "FALSE")
-                elif len(clause_parts) > 0:
-                    funs.append(" | ".join(clause_parts))
-                else:
-                    funs.append("(" + ") & (".join(v_pars) + ") & FALSE")
-            
-            infer_BN = BN(vars, funs)
-            logging.info(
-                f"Received following BN:\n"
-                f"\tVariables: {vars}\n"
-                f"\tParents: {parents}\n"
-                f"\tChildren: {children}\n"
-                f"\tMarkov Blankets: {MBs}\n"
-                f"\tMost probable values: {values}\n"
-                f"\tInferred functions: {funs}\n"
-                f"Passing the BN to compare."
-            )
-            BNs.append(BN_params(infer_BN, vars, parents, MBs)) 
-    return BNs   
+        # Inferred clause generation (from bn_generator)
+        funs = []
+        for v_num, v in enumerate(vars):
+            size = len(parents[v])
+            v_pars = parents[v][::-1]
+            clause_parts = []
+            for i, val in enumerate(values[v_num]):
+                if val == 1:
+                    clause_vars = []
+                    for e in range(size):
+                        # Iterator e is used as a bit mask for current variable assignment.
+                        if i & 2 ** e:
+                            clause_vars.append(v_pars[e])
+                        else:
+                            clause_vars.append("~" + v_pars[e])
+                    clause_parts.append("(" + " & ".join(clause_vars) + ")")
+            if len(parents[v]) == 0:
+                funs.append("TRUE" if values[v_num][0] == 1 else "FALSE")
+            elif len(clause_parts) > 0:
+                funs.append(" | ".join(clause_parts))
+            else:
+                funs.append("(" + ") & (".join(v_pars) + ") & FALSE")
+        
+        infer_BN = BN(vars, funs, set(), set(), {}, {})
+        logging.info(
+            f"Received following BN:\n"
+            f"\tVariables: {vars}\n"
+            f"\tParents: {parents}\n"
+            f"\tChildren: {children}\n"
+            f"\tMarkov Blankets: {MBs}\n"
+            f"\tMost probable values: {values}\n"
+            f"\tInferred functions: {funs}\n"
+            f"Passing the BN to compare."
+        )
+        return BN_params(infer_BN, vars, parents, MBs)
 
-def measure_distance(source_path: str, infer_path: str):
-    source_BNs = parse_source(source_path)
-    infer_BNs = parse_infer(infer_path, len(source_BNs))
+def measure_distance(bn_path: str, infer_path: str):
+    source_bn_paths = get_bn_paths(bn_path)
 
     print(f'Comparing networks from test {infer_path}...')
-    for num, (s, i) in enumerate(zip(source_BNs, infer_BNs)):
+    for path in source_bn_paths:
+        bn_id = int(path.replace(bn_path, "").replace(".json", ""))
         print('\n==== TEST START ====\n\n')
-        print(f'Network pair no. {num}\n')
+        print(f'Network pair no. {bn_id}\n')
+
+        s = parse_source(path)
+        i = parse_infer(infer_path, bn_id)
 
         # Precision, Recall, F1 on parent sets.
         tp = 0
@@ -258,7 +256,7 @@ def measure_distance(source_path: str, infer_path: str):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("-s", "--source", type=str, required=True, help="File path to source Boolean Networks")
+    parser.add_argument("-bn-pref", "--bn-files-prefix", type=str, required=True, help="File path prefix to source BNs")
     parser.add_argument("-i", "--inference", type=str, required=True, help="File name prefix to inferenced DBNs")
 
     args = parser.parse_args()
@@ -271,7 +269,7 @@ def main():
         format="%(asctime)s [%(levelname)s] %(message)s"
     )
 
-    measure_distance(args.source, args.inference)
+    measure_distance(args.bn_files_prefix, args.inference)
 
 if __name__ == "__main__":
     main()

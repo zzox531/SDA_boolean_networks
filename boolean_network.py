@@ -55,12 +55,21 @@ class BN():
                 in the list_of_nodes, e.g. '(x0 & ~x1) | x2', where 'x0', 'x1', and 'x2' are node names.
         
     """
-    def __init__(self, list_of_nodes: list[str], list_of_functions: list[str]):
-                
+    def __init__(
+        self, 
+        list_of_nodes: list[str], 
+        list_of_functions: list[str], 
+        attrs_async: set[tuple[int, ...]] = None, 
+        attrs_sync: set[tuple[int, ...]] = None,
+        parents_async: dict[tuple[int, ...], list[tuple[int, ...]]] = None,
+        parents_sync: dict[tuple[int, ...], list[tuple[int, ...]]] = None
+    ):
+        
         self.num_nodes = len(list_of_nodes)
 
         self.node_names = list_of_nodes
-
+        self.functions_str = list_of_functions
+        
         self.list_of_nodes = []
         for node_name in list_of_nodes:
             node = self.__bool_algebra.Symbol(node_name)
@@ -70,46 +79,58 @@ class BN():
         for fun in list_of_functions:
             self.functions.append(self.__bool_algebra.parse(fun,simplify=True))
 
-        self.attractors_async = self.get_attractors_async()
-        self.attractor_set_async = set()
-        for attr in self.attractors_async:
-            for state in attr:
-                self.attractor_set_async.add(state)
+        if attrs_async is not None:
+            self.attractor_set_async = attrs_async
+        else:
+            attractors_async = self.get_attractors_async()
+            self.attractor_set_async = set()
+            for attr in attractors_async:
+                for state in attr:
+                    self.attractor_set_async.add(state)            
                 
-        self.attractors_sync = self.get_attractors_sync()
-        self.attractor_set_sync = set()
-        for attr in self.attractors_sync:
-            for state in attr:
-                self.attractor_set_sync.add(state)
+        if attrs_sync is not None:
+            self.attractor_set_sync = attrs_sync
+        else:
+            self.attractor_set_sync = self.get_attractors_sync()
                 
-        self.parents_sync = {}
-        self.parents_async = {}
-                
-        for i in range(2**self.num_nodes):
-            tpl = []
-            for j in range(self.num_nodes):
-                if 2**j & i != 0:
-                    tpl.append(1)
-                else:
-                    tpl.append(0)
-            tpl = tpl[::-1]
-            tpl = tuple(tpl)
+        if parents_async is not None:
+            self.parents_async = parents_async
+        else:
+            self.parents_async = {}
+
+        if parents_sync is not None:
+            self.parents_sync = parents_sync
+        else:
+            self.parents_sync = {}
             
-            # Sync parents
-            neighbor_sync = self.get_neighbor_state_sync(tpl)
-            if neighbor_sync in self.parents_sync:
-                self.parents_sync[neighbor_sync].append(tpl)
-            else:
-                self.parents_sync[neighbor_sync] = [tpl]
+        if parents_async is None or parents_sync is None:
+            for i in range(2**self.num_nodes):
+                tpl = []
+                for j in range(self.num_nodes):
+                    if 2**j & i != 0:
+                        tpl.append(1)
+                    else:
+                        tpl.append(0)
+                tpl = tpl[::-1]
+                tpl = tuple(tpl)
                 
-            # Async parents
-            neighbors_async = self.get_neighbor_states_async(tpl)
-            for state in neighbors_async:
-                if state in self.parents_async:
-                    self.parents_async[state].append(tpl)
-                else:
-                    self.parents_async[state] = [tpl]
-                                
+                # Sync parents
+                if parents_sync is None:
+                    neighbor_sync = self.get_neighbor_state_sync(tpl)
+                    if neighbor_sync in self.parents_sync:
+                        self.parents_sync[neighbor_sync].append(tpl)
+                    else:
+                        self.parents_sync[neighbor_sync] = [tpl]
+                    
+                # Async parents
+                if parents_async is None:
+                    neighbors_async = self.get_neighbor_states_async(tpl)
+                    for state in neighbors_async:
+                        if state in self.parents_async:
+                            self.parents_async[state].append(tpl)
+                        else:
+                            self.parents_async[state] = [tpl]
+                              
     def sample_parent_state_sync(self, state: tuple[int, ...]) -> set[tuple[int, ...]]:
         
         if state not in self.parents_sync:
@@ -212,10 +233,9 @@ class BN():
     Computes the synchronous attractors of the Boolean network.
     
         Returns:
-            list[set[tuple[int]]]: A list of synchronous attractors. Each attractor is a set of states.    
+            set[tuple[int]]: A set of all states within synchronous attractors.    
     """
-    def get_attractors_sync(self) -> list[set[tuple[int]]]:        
-        attractors = []
+    def get_attractors_sync(self) -> set[tuple[int]]:
         attractor_states = set()
         for i in range(2**self.num_nodes):
             state = self.int_to_state(i)
@@ -228,17 +248,12 @@ class BN():
             if current_state in attractor_states:
                 continue
             cycle_start_state = current_state
-            cycle_states = set()
-            cycle_states.add(cycle_start_state)
+            attractor_states.add(current_state)
             current_state = self.get_neighbor_state_sync(cycle_start_state)
             while current_state != cycle_start_state:
-                cycle_states.add(current_state)
+                attractor_states.add(current_state)
                 current_state = self.get_neighbor_state_sync(current_state)
-            # Check if the cycle is already in the attractors list
-            attractors.append(cycle_states)
-            for s in cycle_states:
-                attractor_states.add(s)
-        return attractors
+        return attractor_states
         
             
     

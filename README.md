@@ -380,5 +380,3 @@ These fields are parsed into variables and used to construct the generator comma
     ```sh
     ./trajectory_inference.sh "<test_prefix>" "<test_prefix>" "<criterion>"
     ```
-
-The script uses ```set -e```, so it stops immediately if trajectory generation or inference fails. This prevents partial/invalid experiment outputs from being mixed with successful runs.

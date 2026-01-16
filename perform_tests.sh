@@ -7,7 +7,8 @@ configs=(
     "1 1 10 50 100 0 test0 42 BDE"
     "1 1 10 50 0 50 test1 42 BDE"
 )
-BN_JSON="datasets/boolean_networks.json"
+
+BN_PREF="datasets/bn_"
 
 mkdir -p datasets logs inference
 
@@ -17,7 +18,7 @@ for conf in "${configs[@]}"; do
     sync_no=$5; async_no=$6; test_prefix=$7; seed=$8
     criterion=$9
 
-    tg_json="datasets/${test_prefix}_trajectory_samples.json"
+    tg_json="datasets/${test_prefix}_trajs_bn_"
     log_file="logs/traj_gen_${test_prefix}.log"
     out_prefix="inference/${test_prefix}"
 
@@ -29,7 +30,7 @@ for conf in "${configs[@]}"; do
         -len-hi $len_hi \
         -sync-no $sync_no \
         -async-no $async_no \
-        -bn-ds "$BN_JSON" \
+        -bn-ds "$BN_PREF" \
         -tg-ds "$tg_json" \
         -tg-ds-txt "datasets/${test_prefix}" \
         -lf "$log_file" \
