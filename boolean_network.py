@@ -174,6 +174,16 @@ class BN():
 
         return neighbor_states
 
+    """
+    Computes the states reachable from the given state in one step of synchronous update.
+
+        Args:
+            state (tuple[int, ...]): A tuple of 0s and 1s representing the Boolean network state.
+
+        Returns:
+            set[tuple[int, ...]]: A set of tuples of 0s and 1s representing the Boolean network states reachable
+                in one step from the given state.
+    """
     def get_neighbor_state_sync(self, state: tuple[int, ...]) -> tuple[int, ...]:
         kwargs = {}
         for i in range(self.num_nodes):
