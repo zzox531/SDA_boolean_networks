@@ -33,7 +33,7 @@ def read_network():
     return variables, functions
 
 def generate_network(
-        filename: str,
+        filename_prefix: str,
         visuals: bool,
         visual_dir: str, 
 ):
@@ -57,9 +57,8 @@ def generate_network(
         "parents_async": parents_async_serializable,
         "parents_sync": parents_sync_serializable
     }
-    
-    os.makedirs(os.path.dirname(filename), exist_ok=True)
-    with open(filename, "w") as f:
+    os.makedirs(os.path.dirname(filename_prefix), exist_ok=True)
+    with open(filename_prefix + 'chicken.json', "w") as f:
         json.dump(res, f, indent=2)
     
     if visuals:
@@ -70,7 +69,7 @@ def generate_network(
         
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("-d", "--ds-path", type=str, default="datasets/bn_chicken/bn_chicken.json", help="Dataset filename (.json format)")
+    parser.add_argument("-d", "--ds-path", type=str, default="datasets/bn_", help="Dataset filename prefix (.json format)")
     parser.add_argument("--draw", action=argparse.BooleanOptionalAction, help="Generate visual representation of BNs")
     parser.add_argument("--draw-path", type=str, default="visual/", help="Directory for visual representation of BNs")
 
