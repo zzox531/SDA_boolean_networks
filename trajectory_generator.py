@@ -12,6 +12,7 @@ from tqdm import tqdm
 import random
 
 from boolean_network import BN
+from bn_generator import load_bn_from_path, get_bn_paths
 
 def set_seed(seed: int):
     r.seed(seed)
@@ -88,6 +89,7 @@ def generate_trajectory(
             A list of binary strings representing the state values in 
             the trajectory and best transient/attr ratio achieved for the sample
     """
+    # print("Generatin...")
     
     current_step = 0
     initial_state = tuple(r.randint(0, 2) for _ in range(bn.num_nodes))
@@ -100,6 +102,10 @@ def generate_trajectory(
     # we need to be sure that we've reached an attractor state,
     # thus (in_attractor == False) condition in the while loop
     while(len(res) < length or in_attractor == False):
+        # print("State: ", current_state, synchronous)
+        # print("attractors: ")
+        # for state in bn.attractor_set_sync:
+            # print(state)
         if bn.is_attractor(current_state, synchronous):
             in_attractor = True
 
@@ -112,6 +118,8 @@ def generate_trajectory(
         
     # Take last length element of the result
     res = res[len(res) - length:]
+    
+    # # print("Elo")
     
     # count number of transients & attractors
     transient_states = 0
@@ -171,27 +179,30 @@ def generate_trajectory(
             transient_states += 1
         res[i] = bn.state_to_binary_str(res[i])
     
+    # # print("Finished...")
+    
     return res, transient_states / length
     
 def generate_trajectory_ds(
-    bn_data: list[tuple[list[str], list[str]]],
+    bn_paths: list[str],
     args: argparse.Namespace
 ):
     """
     This function generates a trajectory dataset for a list of Boolean Networks.
 
     Args:
-        bn_data (list[tuple[list[str], list[str]]]): List of tuples containing node names and functions for each Boolean Network
+        bn_paths (list[str]): List of file paths to Boolean Networks
         args (argparse.Namespace): Command line arguments
     Returns:
         dict: A dictionary containing the trajectory dataset
     """
-    
-    tg_bn_traj_data = []
-    
-    for i, (nodes, functions) in enumerate(tqdm(bn_data, desc=f"Generating Trajectories for {len(bn_data)} Boolean Networks", unit="BN")):
-        bn = BN(nodes, functions)
-        logging.info(f"Generating trajectories for BN {i+1}/{len(bn_data)} with {len(bn.node_names)} nodes.")
+        
+    for i, path in enumerate(tqdm(bn_paths, desc=f"Generating Trajectories for {len(bn_paths)} Boolean Networks", unit="BN")):
+        bn = load_bn_from_path(path)
+        # Get BN number from the filepath suffix
+        bn_id = int(path.replace(args.bn_ds_prefix, "").replace(".json", ""))
+        
+        logging.info(f"Generating trajectories for BN {i+1}/{len(bn_paths)} with {len(bn.node_names)} nodes.")
                 
         trajectories = []
         for traj_no in range(args.synchronous_number + args.asynchronous_number):
@@ -216,70 +227,63 @@ def generate_trajectory_ds(
                 "states": traj
             })
         
-        tg_bn_traj_data.append({
-            "bn_id": i,
-            "trajectories": trajectories
-        })
+        os.makedirs(os.path.dirname(args.tg_ds_prefix), exist_ok=True)
+            
+        with open(args.tg_ds_prefix + f"{bn_id}.json", "w") as f:
+            json.dump(trajectories, f, indent=2)
         
-    os.makedirs(os.path.dirname(args.tg_ds_filename), exist_ok=True)
-        
-    with open(args.tg_ds_filename, "w") as f:
-        json.dump(tg_bn_traj_data, f, indent=2)
-        
-def convert_trajectories_to_txt(args):
+def convert_trajectories_to_txt(bn_paths, args):
     """
     Convert trajectory samples from JSON to txt files for boolean network inference.
     Creates one .txt file per boolean network.
     """
     
     # Read the JSON data
-    with open(args.tg_ds_filename, 'r') as f:
-        data = json.load(f)
-    
-    # Process each boolean network
-    for bn_data in data:
-        bn_id = bn_data['bn_id']
-        trajectories = bn_data['trajectories']
+    for path in bn_paths:
+        bn_id = int(path.replace(args.bn_ds_prefix, "").replace(".json", ""))
         
-        # Determine number of variables from the first state
-        if trajectories and trajectories[0]['states']:
-            num_variables = len(trajectories[0]['states'][0])
-        else:
-            continue
-        
-        # Create variable labels (x0, x1, x2, ...)
-        variable_labels = [f"x{i}" for i in range(num_variables)]
-        
-        # Generate column headers
-        headers = []
-        for traj_idx, trajectory in enumerate(trajectories):
-            for time_step in range(len(trajectory['states'])):
-                headers.append(f"serie{traj_idx}:{time_step}")
-        
-        # Create the data matrix
-        data_matrix = []
-        for var_idx in range(num_variables):
-            row = []
-            for traj_idx, trajectory in enumerate(trajectories):
-                for state in trajectory['states']:
-                    # Extract the bit for this variable from the state string
-                    bit_value = state[var_idx]
-                    row.append(bit_value)
-            data_matrix.append(row)
-        
-        # Write to file
-        output_filename = f"{args.tg_ds_txt}_bn_{bn_id}_trajectories.txt"
-        
-        with open(output_filename, 'w') as f:
-            # Write header
-            f.write('\t' + '\t'.join(headers) + '\n')
+        with open(args.tg_ds_prefix + f"{bn_id}.json", 'r') as f:        
+            trajectories = json.load(f)
             
-            # Write data rows
-            for var_idx, row in enumerate(data_matrix):
-                variable_label = variable_labels[var_idx]
-                f.write(variable_label + '\t' + '\t'.join(row) + '\n')
-        
-        print(f"Created {output_filename} with {num_variables} variables and {len(headers)} time points")
+            # Determine number of variables from the first state
+            if trajectories and trajectories[0]['states']:
+                num_variables = len(trajectories[0]['states'][0])
+            else:
+                continue
+            
+            # Create variable labels (x0, x1, x2, ...)
+            variable_labels = [f"x{i}" for i in range(num_variables)]
+            
+            # Generate column headers
+            headers = []
+            for traj_idx, trajectory in enumerate(trajectories):
+                for time_step in range(len(trajectory['states'])):
+                    headers.append(f"serie{traj_idx}:{time_step}")
+            
+            # Create the data matrix
+            data_matrix = []
+            for var_idx in range(num_variables):
+                row = []
+                for traj_idx, trajectory in enumerate(trajectories):
+                    for state in trajectory['states']:
+                        # Extract the bit for this variable from the state string
+                        bit_value = state[var_idx]
+                        row.append(bit_value)
+                data_matrix.append(row)
+            
+            # Write to file
+            output_filename = f"{args.tg_ds_txt}_bn_{bn_id}_trajectories.txt"
+            
+            with open(output_filename, 'w') as f:
+                # Write header
+                f.write('\t' + '\t'.join(headers) + '\n')
+                
+                # Write data rows
+                for var_idx, row in enumerate(data_matrix):
+                    variable_label = variable_labels[var_idx]
+                    f.write(variable_label + '\t' + '\t'.join(row) + '\n')
+            
+            print(f"Created {output_filename} with {num_variables} variables and {len(headers)} time points")
 
 def main():
     parser = argparse.ArgumentParser()
@@ -291,9 +295,9 @@ def main():
     parser.add_argument("-len-hi", "--trajectory-length-high", type=int, default=500, help="Maximum length of each generated trajectory")
     parser.add_argument("-sync-no", "--synchronous-number", type=int, default=100, help="Number of synchronous trajectories to generate per Boolean network")
     parser.add_argument("-async-no", "--asynchronous-number", type=int, default=0, help="Number of asynchronous trajectories to generate per Boolean network")
-    parser.add_argument("-bn-ds", "--bn-ds-filename", type=str, default="datasets/boolean_networks.json", help="Dataset filename of boolean networks (.json format, generated by bn_generator.py)")
-    parser.add_argument("-tg-ds", "--tg-ds-filename", type=str, default="datasets/trajectory_samples.json", help="Trajectory dataset filename (.json format, to be generated)")
-    parser.add_argument("-tg-ds-txt", "--tg-ds-txt", type=str, default="datasets/testcase_0", help="Trajectory dataset filename prefix for txt bnf files")
+    parser.add_argument("-bn-ds", "--bn-ds-prefix", type=str, default="datasets/bn_", help="Dataset filename prefix of boolean networks (.json format, generated by bn_generator.py)")
+    parser.add_argument("-tg-ds", "--tg-ds-prefix", type=str, default="datasets/trajs_bn_", help="Trajectory dataset filename prefix for trajectories of a specific boolean network (.json format)")
+    parser.add_argument("-tg-ds-txt", "--tg-ds-txt", type=str, default="datasets/test0", help="Trajectory dataset filename prefix for txt bnf files")
     parser.add_argument("-lf", "--log-file", type=str, default="logs/traj_gen.log", help="Filename to put the logs in")
     parser.add_argument("-s", "--seed", type=int, default=42, help="RNG seed")
     
@@ -310,12 +314,15 @@ def main():
         format="%(asctime)s [%(levelname)s] %(message)s"
     )
     
-    with open(args.bn_ds_filename, "r") as f:
-        bn_data = json.load(f)
+    print(args.bn_ds_prefix)
     
-    generate_trajectory_ds(bn_data, args)
+    bn_paths = get_bn_paths(args.bn_ds_prefix)
     
-    convert_trajectories_to_txt(args)
+    print(bn_paths)
+
+    generate_trajectory_ds(bn_paths, args)
+    
+    convert_trajectories_to_txt(bn_paths, args)
 
 if __name__ == "__main__":
     main()

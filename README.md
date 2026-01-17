@@ -1,4 +1,4 @@
-# SDA 2 - Final Project - Report
+# __SDA 2 - Final Project - Report__
 
 ## Authors: Ignacy Kozakiewicz, Jakub Misiaszek, Joanna Mali, Piotr Maksymiuk
 
@@ -18,9 +18,22 @@ to reconstruct the structure of a network model representing a real-life biologi
 Regarding the code used for performing the analysis, it is all published in a github repository 
 under [this](https://github.com/zzox531/SDA_boolean_networks) link.
 
-# Part I
+# __Prerequisites__
 
-## Subtask 1.
+This project uses [`uv`](https://github.com/astral-sh/uv) for environment management and package installation.
+
+To install all dependencies:
+```bash
+uv sync
+```
+
+To run a Python script within this environment:
+```bash
+uv run <script_name.py> [arguments]
+```
+# __Part I__
+
+## __Subtask 1.__
 
 The first task of the project was to construct several Boolean Networks
 with sizes ranging from 5 to 16 nodes, where each node would have no more
@@ -30,18 +43,18 @@ be generated at random.
 This functionality is provided by the ```bn_generator.py``` script. It's example usage is:
 
 ```sh
-python3 bn_generator.py -s 2137 -c 5 -d datasets/boolean_networks.json --draw --draw-path ./visual
+uv run bn_generator.py -s 2137 -c 5 -d datasets/bn_ --draw --draw-path ./visual
 ```
 
 Arguments to be passed to the ```bn_generator.py``` are:
 
 - `-s`/`--seed`: `(int)` -  a random seed to be set within the generator, such that the execution of the code is replicable
 - `-c`/`--count`: `(int)` - number of boolean networks to be generated
-- `-d`/`--ds-path`: `(str)` - dataset filename path - a relative path leading to a `.json` file where the boolean networks are saved
-- `--draw` - An option wether to generate visual representation of BNs. If set, saves the visuals for networks of size = 5 (higher numbers might be unreadable).
+- `-d`/`--ds-path`: `(str)` - dataset filename prefix. There'll be "\<bn_id\>.json" appended to the prefix in order to create ```count``` files, one for each of the boolean networks.  
+- `--draw` - An option whether to generate visual representation of BNs. If set, saves the visuals for networks of size = 5 (higher numbers might be unreadable).
 - `--draw-path`: `(str)`- A relative directory where the visual representations will be saved if `--draw` is set.
 
-For each BN to be generated, the script samples a random number from 5 to 16 to be the number of nodes for the network. 
+For each BN to be generated, the script samples a random number $N$ from 5 to 16 to be the number of nodes for the network. 
 
 The variables names are set from `x0` up to `x15`.
 
@@ -60,62 +73,91 @@ After that, for each of the nodes $x_i$ and corresponding functions $f_i$ of the
 
     We had to take under consideration such a case, where $|J| = 0$, then we simply take a logical $AND$ of all parents $x_{k,S_i}$ and logically and it with $0$ to make sure the value of the function stays as a ```FALSE```.
 
-After generating all the functions, the data about the boolean network is stored inside ```--ds-path``` directory in a json format.
+After generating all the functions, the Boolean Network object is created.
+
+The majority of the source code has been taken from the lab course about Boolean Networks, yet there were a few crucial components that had to be implemented, such as:
+
+- ```get_neighbor_states_async(state)``` - Returns a list of neighbor states in asynchronous transition mode
+- ```get_neighbor_state_sync(state)``` - Returns a neighbor state in synchronous transition mode
+- ```get_attractors_async()``` Returns a list of sets of attractors in asynchronous transition mode
+- ```get_attractors_sync()``` Returns a set of attractor states in synchronous transition mode
+- ```is_attractor(state, synchronous)``` Returns ```TRUE``` if a state is an attractor in either synchronous or asynchronous mode.
+
+The ```__init__()``` function has been extended not only store the functions / states of the BN, but also to compute important sets / dictionaries that will be used later on. These are:
+- Set of asynchronous attractors - ```attractor_set_async```
+- Set of synchronous attractors - ```attractor_set_sync```
+- Dictionary of asynchronous parents for each state - ```parents_async```
+- Dictionary of synchronous parents for each state - ```parents_sync```
+
+These structures will be used while sampling trajectories from the boolean network.
+
+The parents dictionaries are computed by going through each state $\mathcal{U}$ and computing a transition $\mathcal{U} \rightarrow \mathcal{V}$. For asynchronous transitions, there might be up to $N$ such elements, while for synchronous transitions, there's only one such $\mathcal{V}$. For each state $\mathcal{V}$, state $\mathcal{U}$ is considered its' parent. We store this information in the dictionary. 
+
+the data about each of the boolean networks is stored inside ```ds_path<bn_id>.json```  directory.
 
 An example of such a file format is:
 
 ```json
-[
-  [
-    [
-      "x0",
-      "x1",
-      "x2",
-      "x3",
-      "x4"
-    ],
-    [
-      "(~x4 & ~x1 & ~x3) | (x4 & x1 & ~x3) | (~x4 & ~x1 & x3) | (x4 & ~x1 & x3) | (~x4 & x1 & x3) | (x4 & x1 & x3)",
-      "(~x2) | (x2)",
-      "(x1 & ~x3 & ~x4) | (~x1 & x3 & ~x4) | (x1 & x3 & ~x4) | (x1 & ~x3 & x4) | (~x1 & x3 & x4)",
-      "(~x0)",
-      "(~x3 & ~x0 & ~x1)"
-    ]
+{
+  "nodes": [
+    "x0",
+    "x1"
   ],
-  [
-    [
-      "x0",
-      "x1",
-      "x2",
-      "x3",
-      "x4"
+  "functions": [
+    "(~x1)",
+    "(~x0) | (x0)"
+  ],
+  "attrs_async": [
+    "(0, 1)"
+  ],
+  "attrs_sync:": [
+    "(0, 1)"
+  ],
+  "parents_async": {
+    "(1, 0)": [
+      "(0, 0)",
+      "(1, 0)"
     ],
-    [
-      "(~x0)",
-      "(~x2) | (x2)",
-      "(~x4 & ~x1 & ~x3) | (x4 & x1 & ~x3) | (~x4 & ~x1 & x3) | (x4 & ~x1 & x3) | (~x4 & x1 & x3) | (x4 & x1 & x3)",
-      "(x1 & ~-x3 & ~x4) | (~x1 & x3 & ~x4) | (x1 & x3 & ~x4) | (x1 & ~x3 & x4) | (~x1 & x3 & x4)",
-      "(~x3 & ~x0 & ~x1)"
+    "(0, 1)": [
+      "(0, 0)",
+      "(0, 1)",
+      "(1, 1)"
+    ],
+    "(1, 1)": [
+      "(1, 0)",
+      "(1, 1)"
     ]
-  ]
-]
+  },
+  "parents_sync": {
+    "(1, 1)": [
+      "(0, 0)",
+      "(1, 0)"
+    ],
+    "(0, 1)": [
+      "(0, 1)",
+      "(1, 1)"
+    ]
+  }
+}
 ```
 
-## Subtask 2.
+## __Subtask 2.__
 
 Second subtask was to simulate trajectories of the generated networks in both synchronous and asynchronous modes to create datasets. This functionality is provided by the ```trajectory_generator.py``` python script. Its' example usage is: 
 
 ```sh
-python3 trajectory_generator.py \
+uv run trajectory_generator.py \
+    -ratio-lo 0.2 \
+    -ratio-hi 0.4 \
     -fr-lo 1 \
     -fr-hi 5 \
     -len-lo 10 \
     -len-hi 500 \
     -sync-no 100 \
     -async-no 100 \
-    -bn-ds datasets/boolean_networks.json \
-    -tg-ds datasets/trajectory_samples.json \
-    -tg-ds-txt datasets/testcase_0 \
+    -bn-ds datasets/bn_ \
+    -tg-ds datasets/test0_bn_ \
+    -tg-ds-txt datasets/test0 \
     -lf logs/traj_gen.log \
     -s 42
 ```
@@ -135,9 +177,9 @@ Arguments to be passed to the trajectory_generator.py are:
 
 - ```-async-no``` / ```--asynchronous-number```: (int) – Number of asynchronous trajectories to generate per Boolean network.
 
-- ```-bn-ds``` / ```--bn-ds-filename```: (str) – Dataset filename path to a .json file containing Boolean networks (generated by bn_generator.py).
+- ```-bn-ds``` / ```--bn-ds-filename```: (str) – Dataset filename prefix of boolean networks (.json format, generated by bn_generator). This prefix needs to be exactly the same as the one input for ```bn_generator.py```
 
-- ```-tg-ds``` / ```--tg-ds-filename```: (str) – Output dataset filename path (.json) where generated trajectories will be saved.
+- ```-tg-ds``` / ```--tg-ds-filename```: (str) – Trajectory dataset filename prefix for trajectories generation. For a filename ```datasets/bn_5.json```, if the prefix is ```datasets/test0_bn_``` a file ```datasets/test0_bn_5.json``` will be generated.
 
 - ```-tg-ds-txt``` / ```--tg-ds-txt```: (str) – Filename prefix for exporting generated trajectories into text-based BNF files.
 
@@ -145,12 +187,15 @@ Arguments to be passed to the trajectory_generator.py are:
 
 - ```-s``` / ```--seed```: (int) – Random seed to ensure reproducible trajectory generation.
 
-### General workflow
+### __General workflow__
 
-The script takes as input a dataset of Boolean Networks generated in Subtask 1 and, for each network, simulates a number of trajectories starting from random initial states. Each trajectory represents a sequence of Boolean states evolving according to the network’s update rules.
+The script takes as input a prefix of filenames to look for. It searches for all files starting with such a prefix and gets the list of datasets of Boolean Networks to be computed. For each network, it simulates a number of trajectories starting from random initial states. Each trajectory represents a sequence of Boolean states evolving according to the network’s update rules.
+
+In the code, instead of using ratio of transient to attractor, we've used a ratio of transient to length. This allows the values to range from between 0 and 1, where for ```ratio=0``` we'd sample only attractor staes and for ```ratio=1``` we'd sample only transient states. 
 
 The trajectories are generated with:
 
+- randomly sampled transient/length ratio.
 - randomly sampled trajectory lengths
 - randomly sampled sampling frequencies
 - either synchronous or asynchronous update dynamics.
@@ -160,17 +205,17 @@ The resulting trajectories are stored in two formats:
 - A structured .json dataset containing metadata and state sequences.
 - A set of .txt files (one per Boolean Network) formatted for BNFinder2 inference tool.
 
-### Trajectory generation
+### __Trajectory generation__
 
 For each Boolean Network $\mathrm{BN}$, trajectories are generated using the ```generate_trajectory``` function. 
 
-#### Initial state
+### __Initial state__
 
 - The initial state is sampled uniformly at random from $\{0,1\}^n$, where $n$ is the number of nodes in the network.
 
 - Internally, states are represented as tuples of binary values and later converted to binary strings (e.g. ```"01011"```).
 
-#### Update modes
+### __Update modes__
 
 Two update schemes are supported:
 
@@ -190,7 +235,7 @@ Two update schemes are supported:
 
 The update mode is determined per trajectory based on whether it belongs to the synchronous or asynchronous subset.
 
-#### Frequency-based sampling
+### __Frequency-based sampling__
 
 Each trajectory is generated step-by-step, but states are recorded only every $f$-th step, where:
 
@@ -198,7 +243,23 @@ $f \sim \mathcal{U}(\texttt{FrequencyLow}, \texttt{FrequencyHigh})$
 
 Trajectory generation continues until the required number of recorded states reaches the randomly sampled trajectory length.
 
-#### Trajectory dataset construction
+#### __Transient to length ratio__
+
+There has been an issue with sampling trajectories which have a certain transient/length ratio while maintaining a trajectory length equal to some sampled value. As we randomly sample the initial state of the trajectory, it's hard to define which path leads to a certain ratio and a certain length (such path might not even exist). 
+
+Our approach was to generate the trajectory and then to maximize the ratio by extending the trajectory. After the sample of length $l$ was created, we check what is the ratio of transient attractors to length $l$ of the trajectory. The states of the trajectory are $s_0, s_1, ..., s_l$. There might be two cases of the ratio:
+
+- Trajectory to length ratio is too high 
+
+    If it's too high, we sample state $s_{l+1}$ and set our sample to $s_{1}, ..., s_{l+1}$. If $s_{l+1}$ is an attractor, we improve the ratio. If it's not an attractor, we'll eventually reach a state $s_t$ which is an attractor and eventually improve the ratio. The ratio is improved because we increase the number of attractors by 1 and decrease number of transient states by 1 (as we cut away the prefix by 1 element). 
+  
+- Trajectory to length ratio is too low
+
+    If the ratio is too low, we need to increase the number of transient states while decreasing the number of attractor states. We do this by extending our trajectory at the beginning. For the initial state $s_0$ we get its' parents and sample a parent $s_{-1}$. The new set is $s_{-1}, s_0, ..., s_{l-1}$. We repeat the process until conversion to the optimal ratio. There might be a case where the state has no parents, so we must stop the process, as we can't extend the trajectory anymore.
+
+All of the generated trajectories are then saved within the .json files.
+
+### __Trajectory dataset construction__
 
 The function ```generate_trajectory_ds``` iterates over all Boolean Networks and generates for each network:
 
@@ -220,15 +281,17 @@ The output dataset is saved in JSON format as specified by ```--tg-ds-filename``
   "trajectories": [
     {
       "synchronous": true,
-      "frequency": 2,
-      "length": 50,
+      "frequency": 1,
+      "length": 17,
+      "target_ratio": 0.20110442342472049,
+      "generated_ratio": 0.17647058823529413,
       "states": ["0101", "1101", "1100", "..."]
     }
   ]
 }
 ```
 
-### Conversion to text-based format
+### __Conversion to text-based format__
 
 After generating the JSON dataset, the script converts the trajectories into text files using the ```convert_trajectories_to_txt``` function.
 
@@ -239,11 +302,11 @@ For each Boolean Network:
 - Rows correspond to network variables ($x_0$, $x_1$, ..., $x_n$).
 - Each cell contains a binary value (```0``` or ```1```) representing the state of a variable at a given time step.
 
-The output format is compatible with BNFinder2 framework.
+The output format is compatible with BNFinder2 inference tool.
 
 The filenames follow the pattern: "```<tg-ds-txt>```\_bn\_```<bn_id>```\_trajectories.txt"
 
-### Reproducibility and logging
+### __Reproducibility and logging__
 
 - A fixed random seed (```--seed```) ensures reproducibility of trajectory generation.
 - Detailed execution logs are written to the specified log file (```--log-file```), including:
@@ -252,7 +315,7 @@ The filenames follow the pattern: "```<tg-ds-txt>```\_bn\_```<bn_id>```\_traject
     - trajectory lengths and frequencies
     - progress over Boolean Networks
 
-## Subtask 3. 
+## __Subtask 3.__ 
 
 The third subtask was to infer dynamic Bayesian Networks generated in substeps 1 and 2 using the BNFinder2 software tool. This functionality is provided by the ```trajectory_inference.sh``` bash script. 
 
@@ -281,7 +344,7 @@ This bash script is the main orchestration entry point for running a suite of in
 
 The goal is to evaluate how the inferred Dynamic Bayesian Network structures depend on the type and amount of observed dynamics (synchronous vs asynchronous trajectories, and sample size).
 
-#### Example usage
+### __Example usage__
 
 ```sh
 ./run_all_tests.sh
@@ -301,7 +364,7 @@ Each experiment is specified as a single quoted line with the following fields:
 
 These fields are parsed into variables and used to construct the generator command, inference command, and output paths. Since configs is a plain Bash array, the number of experiments is not fixed: the user can add any number of entries, remove entries, or adjust parameters to create new test regimes.
 
-#### Meaning of each field
+### __Meaning of each field__
 
 - ```fr_lo```, ```fr_hi```
 
@@ -331,7 +394,7 @@ These fields are parsed into variables and used to construct the generator comma
 
     Scoring criterion passed to BNFinder2 during inference (e.g., BDE / MDL).
 
-### Per-experiment execution
+### __Per-experiment execution__
 
 1) Directory creation
 
@@ -367,5 +430,3 @@ These fields are parsed into variables and used to construct the generator comma
     ```sh
     ./trajectory_inference.sh "<test_prefix>" "<test_prefix>" "<criterion>"
     ```
-
-The script uses ```set -e```, so it stops immediately if trajectory generation or inference fails. This prevents partial/invalid experiment outputs from being mixed with successful runs.
