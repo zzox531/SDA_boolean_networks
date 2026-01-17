@@ -44,18 +44,33 @@ def generate_network(
         filename (str): Name file for the dataset to be generated.
     """
     vars, funcs = read_network()
+    bn = BN(vars, funcs)
+    
+    parents_async_serializable = {str(k): [str(v) for v in val] for k, val in bn.parents_async.items()}
+    parents_sync_serializable = {str(k): [str(v) for v in val] for k, val in bn.parents_sync.items()}
+    
+    res = {
+        "nodes": vars,
+        "functions": funcs,
+        "attrs_async": [str(state) for state in bn.attractor_set_async],
+        "attrs_sync:": [str(state) for state in bn.attractor_set_sync],
+        "parents_async": parents_async_serializable,
+        "parents_sync": parents_sync_serializable
+    }
+    
     os.makedirs(os.path.dirname(filename), exist_ok=True)
     with open(filename, "w") as f:
-        json.dump([vars, funcs], f, indent=2)
+        json.dump(res, f, indent=2)
     
     if visuals:
-        network = BN(vars, funcs)
+        
         os.makedirs(os.path.dirname(visual_dir), exist_ok=True)
-        network.draw_state_transition_system(f"{visual_dir}chickenBN.png")
+        if bn.num_nodes < 6:
+            bn.draw_state_transition_system(f"{visual_dir}chickenBN.png")
         
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("-d", "--ds-path", type=str, default="datasets/chicken_network.json", help="Dataset filename (.json format)")
+    parser.add_argument("-d", "--ds-path", type=str, default="datasets/bn_chicken/bn_chicken.json", help="Dataset filename (.json format)")
     parser.add_argument("--draw", action=argparse.BooleanOptionalAction, help="Generate visual representation of BNs")
     parser.add_argument("--draw-path", type=str, default="visual/", help="Directory for visual representation of BNs")
 
@@ -71,7 +86,9 @@ def main():
     )
 
     generate_network(args.ds_path, args.draw, args.draw_path)
-
+    
+    
+    
 if __name__ == "__main__":
     main()
 
