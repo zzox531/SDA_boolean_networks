@@ -154,6 +154,47 @@ def parse_infer(
         )
         return BN_params(infer_BN, vars, parents, MBs)
 
+def measure_distance_spectral(bn_path: str, infer_path: str):
+    source_bn_paths = get_bn_paths(bn_path)
+
+    print(f'Comparing networks from test {infer_path}...')
+    for path in source_bn_paths:
+        bn_id = int(path.replace(bn_path, "").replace(".json", ""))
+        print('\n==== TEST START ====\n\n')
+        print(f'Network pair no. {bn_id}\n')
+
+        s = parse_source(path)
+        i = parse_infer(infer_path, bn_id)
+
+        # print(s.BN_struct, i.BN_struct)
+        # print(s.vars, i.vars)
+        # print(s.parents, i.parents)
+
+        # Create adjacency matrices
+        adj_matrix_true = np.zeros((len(s.vars), len(s.vars)))
+        adj_matrix_infer = np.zeros((len(i.vars), len(i.vars)))
+
+        for v in s.vars:
+            for p in s.parents[v]:
+                adj_matrix_true[s.vars.index(v), s.vars.index(p)] = 1
+
+        for v in i.vars:
+            for p in i.parents[v]:
+                adj_matrix_infer[i.vars.index(v), i.vars.index(p)] = 1
+
+        # Compute eigenvalues and sort them
+        eig_true = np.linalg.eigvals(adj_matrix_true)
+        eig_true.sort()
+        eig_infer = np.linalg.eigvals(adj_matrix_infer)
+        eig_infer.sort()
+
+        # Compute spectral distance
+        spectral_distance = np.linalg.norm(eig_true - eig_infer)
+        print(f'Spectral Distance between source and inferred BN: {spectral_distance}\n')
+
+
+        print('\n==== TEST END ====\n')
+
 def measure_distance(bn_path: str, infer_path: str):
     source_bn_paths = get_bn_paths(bn_path)
 
@@ -269,7 +310,8 @@ def main():
         format="%(asctime)s [%(levelname)s] %(message)s"
     )
 
-    measure_distance(args.bn_files_prefix, args.inference)
+    measure_distance_spectral(args.bn_files_prefix, args.inference)
+    # measure_distance(args.bn_files_prefix, args.inference)
 
 if __name__ == "__main__":
     main()
