@@ -164,6 +164,9 @@ uv run trajectory_generator.py \
 
 Arguments to be passed to the trajectory_generator.py are:
 
+- ```--ratio-lo``` / ```--trans-length-ratio-low```: (float) - Lower bound for the transient to trajectory length ratio
+
+- ```--ratio-hi``` / ```--trans-length-ratio-high```: (float) - Upper bound for the transient to trajectory length ratio
 
 - ```-fr-lo``` / ```--frequency-low```: (int) – Lower bound for the frequency used during trajectory generation.
 
