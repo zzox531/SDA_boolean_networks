@@ -207,8 +207,8 @@ def main():
     sliced = inferred[
         (inferred['bn_number'] == 2) & 
         (inferred['type'] == 'len') & 
-        (inferred['bde'] == True) &
-        (inferred['sync'] == True)
+        (inferred['bde'] == False) &
+        (inferred['sync'] == False)
     ]
     sliced = sliced.sort_values(by='value', ascending=False)
     print(sliced.head())

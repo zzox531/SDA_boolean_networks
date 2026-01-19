@@ -17,9 +17,9 @@ mkdir -p inference/cpd
 find ./datasets -type f -name "${test_prefix}_bn_*_trajectories.txt" | while read -r file; do
     if [[ "$file" =~ ${test_prefix}_bn_([0-9]+)_trajectories\.txt$ ]]; then
         num="${BASH_REMATCH[1]}"
-        output_file_sif="inference/sif/${output_prefix}-bn${num}.sif"
-        output_file_bif="inference/bif/${output_prefix}-bn${num}.bif"
-        output_file_cpd="inference/cpd/${output_prefix}-bn${num}.cpd"
+        output_file_sif="inference/sif/${output_prefix}-${num}.sif"
+        output_file_bif="inference/bif/${output_prefix}-${num}.bif"
+        output_file_cpd="inference/cpd/${output_prefix}-${num}.cpd"
         bnf -e "$file" -n "$output_file_sif" -b "$output_file_bif" -c "$output_file_cpd" -v -s "$criterion" -g -l 3 -k 16
     fi
 done
