@@ -80,8 +80,8 @@ for conf in "${configs[@]}"; do
         -s $seed
 
     echo "=== Running inference for $test_prefix ==="
-    ./trajectory_inference.sh "${test_prefix}_BDE" "$test_prefix" "BDE"
-    ./trajectory_inference.sh "${test_prefix}_MDL" "$test_prefix" "MDL"
+    ./trajectory_inference.sh "${test_prefix}-BDE" "$test_prefix" "BDE"
+    ./trajectory_inference.sh "${test_prefix}-MDL" "$test_prefix" "MDL"
 
     echo "--- Completed $test_prefix ---"
     echo
