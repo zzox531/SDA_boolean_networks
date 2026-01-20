@@ -186,11 +186,114 @@ def delta_con_similarity(G1, G2):
     
     return similarity
 
+def draw_plot(source: dict[int, nx.DiGraph], inferred: pd.DataFrame, test_name: str, title: str, value: str):
+    row_configs = [
+        (True, True, "Sync BDE"),
+        (True, False, "Sync MDL"),
+        (False, True, "Async BDE"),
+        (False, False, "Async MDL")
+    ]
+
+    # Create 4 rows x 2 columns grid
+    fig, axes = plt.subplots(4, 2, figsize=(16, 20))
+    fig.suptitle(f"{title}", fontsize=16)
+
+    for row_idx, (is_sync, is_bde, label) in enumerate(row_configs):
+        
+        # Select the subplots for this row
+        ax_spectral = axes[row_idx, 0]
+        ax_deltacon = axes[row_idx, 1]
+        
+        # Set titles and labels
+        ax_spectral.set_ylabel(f"{label}")
+        
+        if row_idx == 0:
+            ax_spectral.set_title("Spectral Distance (Lower is better)")
+            ax_deltacon.set_title("DeltaCon Similarity (Higher is better)")
+        if row_idx == 3:
+            ax_spectral.set_xlabel(f"{value}")
+            ax_deltacon.set_xlabel(f"{value}")
+
+        # For mean calculation
+        spectral_sum = None
+        deltacon_sum = None
+        sorted_x = None
+
+        # Plot all BNs
+        num_bns = inferred['bn_number'].nunique()
+        
+        for bn_id in range(num_bns): 
+            sliced = inferred[
+                (inferred['bn_number'] == bn_id) & 
+                (inferred['type'] == test_name) & 
+                (inferred['bde'] == is_bde) &
+                (inferred['sync'] == is_sync)
+            ]
+            
+            sliced = sliced.sort_values(by='value', ascending=True)
+            
+            if sliced.empty:
+                logging.warning(f"No data for BN {bn_id} with sync={is_sync} and bde={is_bde}")
+                continue
+
+            x_values = sliced['value'].tolist()
+            y_spectral = []
+            y_deltacon = []
+            
+            G_source = source[bn_id]
+            
+            for G_inferred in sliced['graph']:
+                spec = spectral_similarity(G_source, G_inferred)
+                y_spectral.append(spec)
+                
+                dc = delta_con_similarity(G_source, G_inferred)
+                y_deltacon.append(dc)
+            
+            # For mean calculation
+            if spectral_sum is None:
+                spectral_sum = np.array(y_spectral)
+                deltacon_sum = np.array(y_deltacon)
+                sorted_x = x_values
+            else:
+                spectral_sum += np.array(y_spectral)
+                deltacon_sum += np.array(y_deltacon)
+
+            # Plot lines
+            ax_spectral.plot(x_values, y_spectral, marker='o', 
+                             alpha=0.3, linewidth=1,  # Low opacity
+                             label=f'BN {bn_id}')
+            
+            ax_deltacon.plot(x_values, y_deltacon, marker='o', # linestyle='--', 
+                             alpha=0.3, linewidth=1,  # Low opacity
+                             label=f'BN {bn_id}')
+
+        # Calculate mean        
+        mean_spectral = spectral_sum / num_bns
+        mean_deltacon = deltacon_sum / num_bns
+        
+        # Plot Mean Spectral
+        ax_spectral.plot(sorted_x, mean_spectral, 
+                         color='black', linewidth=3, # Thick and distinct
+                         label='Mean')
+        
+        # Plot Mean DeltaCon
+        ax_deltacon.plot(sorted_x, mean_deltacon, 
+                         color='black', linewidth=3, linestyle='--',
+                         label='Mean')
+
+    # Add legend (ensure 'Mean' is included)
+    handles, labels = axes[0, 0].get_legend_handles_labels()
+    # Optional: Reorder legend so Mean is first or last
+    fig.legend(handles, labels, loc='lower center', ncol=6, bbox_to_anchor=(0.5, 0.01))
+
+    plt.tight_layout()
+    plt.subplots_adjust(bottom=0.08, top=0.93) 
+    plt.show()
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("-bn-pref", "--bn-files-prefix", type=str, help="File path prefix to source BNs", default="datasets/bn_")
     parser.add_argument("-infer-dir", "--inference-dir", type=str, help="Directory name for inferenced DBNs", default="inference/cpd/")
-
     args = parser.parse_args()
 
     os.makedirs("logs", exist_ok=True)
@@ -201,45 +304,40 @@ def main():
         format="%(asctime)s [%(levelname)s] %(message)s"
     )
 
-    source = parse_all_source('datasets/bn_')
-    inferred = parse_all_infer('inference/cpd/')
+    source = parse_all_source(f'{args.bn_files_prefix}')
+    inferred = parse_all_infer(f'{args.inference_dir}')
 
-    sliced = inferred[
-        (inferred['bn_number'] == 2) & 
-        (inferred['type'] == 'len') & 
-        (inferred['bde'] == False) &
-        (inferred['sync'] == False)
-    ]
-    sliced = sliced.sort_values(by='value', ascending=False)
-    print(sliced.head())
-    for v, g in zip(sliced['value'], sliced['graph']):
-        
-        G1 = source[2]
-        G2 = g
-        G_all = nx.compose(G1, G2)
-        pos = nx.spring_layout(G_all, seed=42)  # Fixed seed for consistency
+    draw_plot(source, inferred, 'ratio_small', 'Distance Measures between Source and Inferred BNs', 'Transient num to length ratio')
+    draw_plot(source, inferred, 'len_small', 'Distance Measures between Source and Inferred BNs', 'Sequence length')
 
-        # 3. Plot Side-by-Side
-        plt.figure(figsize=(12, 6))
 
-        # Left Plot: Graph 1
-        plt.subplot(1, 2, 1)
-        nx.draw(G1, pos, with_labels=True, node_color='lightblue', edge_color='gray')
-        plt.title("Graph 1 (Original)")
+    # sliced = inferred[
+    #     (inferred['bn_number'] == 2) & 
+    #     (inferred['type'] == 'ratio_small') & 
+    #     (inferred['bde'] == False) &
+    #     (inferred['sync'] == True)
+    # ]
+    # sliced = sliced.sort_values(by='value', ascending=False)
 
-        # Right Plot: Graph 2
-        plt.subplot(1, 2, 2)
-        # Draw G2 using the SAME 'pos' dictionary
-        nx.draw(G2, pos, with_labels=True, node_color='lightgreen', edge_color='gray')
-        plt.title("Graph 2 (Modified)")
+    # for v, g in zip(sliced['value'], sliced['graph']):
+    #     G1 = source[2]
+    #     G2 = g
+    #     G_all = nx.compose(G1, G2)
+    #     pos = nx.spring_layout(G_all, seed=42)  # Fixed seed for consistency
 
-        plt.show()
+    #     # 3. Plot Side-by-Side
+    #     plt.figure(figsize=(12, 6))
 
-        print(v, delta_con_similarity(source[2], g), spectral_similarity(source[2], g))
+    #     # Left Plot: Graph 1
+    #     plt.subplot(1, 2, 1)
+    #     nx.draw(G1, pos, with_labels=True, node_color='lightblue', edge_color='gray')
+    #     plt.title("Graph 1 (Original)")
 
-    # measure_distance_spectral(source, inferred)
-    # measure_distance(source, inferred)
-    print(delta_con_similarity(source[0], source[0]))
+    #     # Right Plot: Graph 2
+    #     plt.subplot(1, 2, 2)
+    #     nx.draw(G2, pos, with_labels=True, node_color='lightgreen', edge_color='gray')
+    #     plt.title("Graph 2 (Modified)")
+    #     plt.show()
 
 if __name__ == "__main__":
     main()
