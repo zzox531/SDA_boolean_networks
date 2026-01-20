@@ -87,9 +87,10 @@ def parse_all_source(
     Returns:
         dict[int, nx.DiGraph]: Dictionary of parsed source BNs
     """
-    bn_paths = get_bn_paths(bn_files_prefix)
+    bn_paths = glob.glob(bn_files_prefix + "*.json")
     source_bns = {}
-    for num, path in enumerate(bn_paths):
+    for path in bn_paths:
+        num = int(path[len(bn_files_prefix):-5])
         source_bns[num] = parse_source(path)
     return source_bns
 
@@ -122,7 +123,7 @@ def parse_all_infer(
             'graph': parse_infer(path)
         })
     infer_bns = pd.DataFrame(rows)
-    logging.info(f"Parsed inferred BNs DataFrame:\n{infer_bns.info()}\n{infer_bns.head()}")
+    logging.info(f"Parsed inferred BNs DataFrame:\n{infer_bns.head()}")
     return infer_bns
 
 def spectral_similarity(G: nx.DiGraph, H: nx.DiGraph):
@@ -242,7 +243,9 @@ def draw_plot(source: dict[int, nx.DiGraph], inferred: pd.DataFrame, test_name: 
             
             G_source = source[bn_id]
             
-            for G_inferred in sliced['graph']:
+            logging.info(f"Processing BN {bn_id} for sync={is_sync}, bde={is_bde}, test={test_name}, values={x_values}")
+            for i, G_inferred in enumerate(sliced['graph']):
+                logging.info(f"Comparing source BN {bn_id} with inferred graph for value {x_values[i]}\nG1 structure: Nodes {G_source.nodes}, Edges {G_source.edges}\nG2 structure: Nodes {G_inferred.nodes}, Edges {G_inferred.edges}")
                 spec = spectral_similarity(G_source, G_inferred)
                 y_spectral.append(spec)
                 
@@ -283,17 +286,17 @@ def draw_plot(source: dict[int, nx.DiGraph], inferred: pd.DataFrame, test_name: 
 
     # Add legend (ensure 'Mean' is included)
     handles, labels = axes[0, 0].get_legend_handles_labels()
-    # Optional: Reorder legend so Mean is first or last
     fig.legend(handles, labels, loc='lower center', ncol=6, bbox_to_anchor=(0.5, 0.01))
 
     plt.tight_layout()
-    plt.subplots_adjust(bottom=0.08, top=0.93) 
+    plt.subplots_adjust(bottom=0.10, top=0.93) 
     plt.show()
 
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("-bn-pref", "--bn-files-prefix", type=str, help="File path prefix to source BNs", default="datasets/bn_")
     parser.add_argument("-infer-dir", "--inference-dir", type=str, help="Directory name for inferenced DBNs", default="inference/cpd/")
+    parser.add_argument("-t", "--test-name", type=str, help="Test name to filter BNs, all by default")
     args = parser.parse_args()
 
     os.makedirs("logs", exist_ok=True)
@@ -307,37 +310,11 @@ def main():
     source = parse_all_source(f'{args.bn_files_prefix}')
     inferred = parse_all_infer(f'{args.inference_dir}')
 
-    draw_plot(source, inferred, 'ratio_small', 'Distance Measures between Source and Inferred BNs', 'Transient num to length ratio')
-    draw_plot(source, inferred, 'len_small', 'Distance Measures between Source and Inferred BNs', 'Sequence length')
-
-
-    # sliced = inferred[
-    #     (inferred['bn_number'] == 2) & 
-    #     (inferred['type'] == 'ratio_small') & 
-    #     (inferred['bde'] == False) &
-    #     (inferred['sync'] == True)
-    # ]
-    # sliced = sliced.sort_values(by='value', ascending=False)
-
-    # for v, g in zip(sliced['value'], sliced['graph']):
-    #     G1 = source[2]
-    #     G2 = g
-    #     G_all = nx.compose(G1, G2)
-    #     pos = nx.spring_layout(G_all, seed=42)  # Fixed seed for consistency
-
-    #     # 3. Plot Side-by-Side
-    #     plt.figure(figsize=(12, 6))
-
-    #     # Left Plot: Graph 1
-    #     plt.subplot(1, 2, 1)
-    #     nx.draw(G1, pos, with_labels=True, node_color='lightblue', edge_color='gray')
-    #     plt.title("Graph 1 (Original)")
-
-    #     # Right Plot: Graph 2
-    #     plt.subplot(1, 2, 2)
-    #     nx.draw(G2, pos, with_labels=True, node_color='lightgreen', edge_color='gray')
-    #     plt.title("Graph 2 (Modified)")
-    #     plt.show()
+    if args.test_name is None:
+        for test in inferred['type'].unique():
+            draw_plot(source, inferred, test, 'Distance Measures between Source and Inferred BNs', 'Compared value')
+    else:
+        draw_plot(source, inferred, args.test_name, 'Distance Measures between Source and Inferred BNs', 'Transient num to length ratio')
 
 if __name__ == "__main__":
     main()

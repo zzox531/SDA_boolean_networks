@@ -363,13 +363,13 @@ and then execute the test for each config defined in the variable ```configs```.
 
 Each experiment is specified as a single quoted line with the following fields:
 
-```"fr_lo fr_hi len_lo len_hi sync_no async_no test_prefix seed criterion"```
+```"ratio_lo ratio_hi fr_lo fr_hi len_lo len_hi sync_no async_no test_prefix seed criterion"```
 
 These fields are parsed into variables and used to construct the generator command, inference command, and output paths. Since configs is a plain Bash array, the number of experiments is not fixed: the user can add any number of entries, remove entries, or adjust parameters to create new test regimes.
 
 ### __Meaning of each field__
 
-- ```--ratio_lo```,```ratio_hi```
+- ```ratio_lo```,```ratio_hi```
 
    Lower/uppoer bound for the transient to trajectory length ratio
 
