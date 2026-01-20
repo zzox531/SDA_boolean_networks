@@ -350,7 +350,7 @@ The goal is to evaluate how the inferred Dynamic Bayesian Network structures dep
 ### __Example usage__
 
 ```sh
-./run_all_tests.sh
+./perform_tests.sh
 ```
 
 This will create (if missing) the directories:
@@ -368,6 +368,10 @@ Each experiment is specified as a single quoted line with the following fields:
 These fields are parsed into variables and used to construct the generator command, inference command, and output paths. Since configs is a plain Bash array, the number of experiments is not fixed: the user can add any number of entries, remove entries, or adjust parameters to create new test regimes.
 
 ### __Meaning of each field__
+
+- ```--ratio_lo```,```ratio_hi```
+
+   Lower/uppoer bound for the transient to trajectory length ratio
 
 - ```fr_lo```, ```fr_hi```
 
@@ -414,6 +418,7 @@ These fields are parsed into variables and used to construct the generator comma
     The script calls:
     ```sh
     python3 trajectory_generator.py \
+        -ratio-lo <ratio_lo> -ratio-hi <ratio_hi> \
         -fr-lo <fr_lo> -fr-hi <fr_hi> \
         -len-lo <len_lo> -len-hi <len_hi> \
         -sync-no <sync_no> -async-no <async_no> \

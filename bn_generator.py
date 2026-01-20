@@ -96,7 +96,7 @@ def generate_functions(
     funs = []
     for child in variables:
         # Generate parent list
-        size = r.randint(1, 3)
+        size = r.randint(1, 4)
         possible_parents = [v for v in variables if v != child]
         parents = r.choice(possible_parents, size, replace=False)
         
@@ -180,7 +180,7 @@ def generate_ds(
     os.makedirs(os.path.dirname(filename_prefix), exist_ok=True)
     
     for i in range(count):
-        size = r.randint(2, 3)
+        size = r.randint(5, 16)
         bn = generate_bn(size, visuals, visual_dir, i)
         # Write to file bn_<i>.json
         with open(filename_prefix + f"{i}.json", "w") as f:

@@ -89,8 +89,7 @@ def generate_trajectory(
             A list of binary strings representing the state values in 
             the trajectory and best transient/attr ratio achieved for the sample
     """
-    # print("Generatin...")
-    
+
     current_step = 0
     initial_state = tuple(r.randint(0, 2) for _ in range(bn.num_nodes))
     current_state = initial_state
@@ -102,10 +101,6 @@ def generate_trajectory(
     # we need to be sure that we've reached an attractor state,
     # thus (in_attractor == False) condition in the while loop
     while(len(res) < length or in_attractor == False):
-        # print("State: ", current_state, synchronous)
-        # print("attractors: ")
-        # for state in bn.attractor_set_sync:
-            # print(state)
         if bn.is_attractor(current_state, synchronous):
             in_attractor = True
 
@@ -118,9 +113,7 @@ def generate_trajectory(
         
     # Take last length element of the result
     res = res[len(res) - length:]
-    
-    # # print("Elo")
-    
+        
     # count number of transients & attractors
     transient_states = 0
     attractor_states = 0
@@ -178,9 +171,7 @@ def generate_trajectory(
         if not bn.is_attractor(res[i], synchronous):
             transient_states += 1
         res[i] = bn.state_to_binary_str(res[i])
-    
-    # # print("Finished...")
-    
+        
     return res, transient_states / length
     
 def generate_trajectory_ds(
@@ -313,13 +304,9 @@ def main():
         level=logging.INFO,
         format="%(asctime)s [%(levelname)s] %(message)s"
     )
-    
-    print(args.bn_ds_prefix)
-    
+        
     bn_paths = get_bn_paths(args.bn_ds_prefix)
     
-    print(bn_paths)
-
     generate_trajectory_ds(bn_paths, args)
     
     convert_trajectories_to_txt(bn_paths, args)
