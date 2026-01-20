@@ -50,7 +50,7 @@ configs=(
     "0.9 1.0 1 1 50 300  0 10 ratio_small-1.0-async 42"
 )
 
-_PREF="datasets/bn_"
+BN_PREF="datasets/bn_"
 
 mkdir -p datasets logs inference
 
