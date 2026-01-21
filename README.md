@@ -452,3 +452,8 @@ These fields are parsed into variables and used to construct the generator comma
     ```sh
     ./trajectory_inference.sh "<test_prefix>" "<test_prefix>" "<criterion>"
     ```
+
+# __Part II__
+For this task we chose chicken sex determination dataset. 
+By running the code from part2.py, the file with this boolean network in the right format is produced. 
+Next, we run the tests with the parameters of our choice by running ... . 
