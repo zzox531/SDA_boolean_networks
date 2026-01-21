@@ -32,8 +32,6 @@ def read_network():
     variables += inputs
     functions = functions[1:]
     functions.extend(inputs)
-    print(variables)
-    print(functions)
     return variables, functions
 
 def generate_network(
