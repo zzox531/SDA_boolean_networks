@@ -148,23 +148,19 @@ def delta_con_similarity(G1, G2):
     nodes = sorted(list(set(G1.nodes()) | set(G2.nodes())))
     n = len(nodes)
     
-    # 2. Get Dense Adjacency Matrices
-    # nodelist ensures row 0 corresponds to the same node in both matrices
+    # Get Dense Adjacency Matrices
     A1 = nx.to_numpy_array(G1, nodelist=nodes)
     A2 = nx.to_numpy_array(G2, nodelist=nodes)
     
-    # 3. Create Degree Matrices (Diagonal)
-    # Sum of rows gives the degree of each node
+    # Create Degree Matrices (Diagonal)
     D1 = np.diag(np.sum(A1, axis=1))
     D2 = np.diag(np.sum(A2, axis=1))
     
-    # 4. Determine Epsilon (Weighting Factor)
-    # 1 / (1 + max_degree across both graphs)
+    # Determine Epsilon (Weighting Factor)
     max_d = max(D1.max(), D2.max())
     epsilon = 1 / (1 + max_d)
     
-    # 5. Compute Affinity Matrices (S)
-    # Formula: S = inverse(I + eps^2 * D - eps * A)
+    # Compute Affinity Matrices (S)
     I = np.eye(n)
     
     # Matrix 1
@@ -175,14 +171,11 @@ def delta_con_similarity(G1, G2):
     M2 = I + (epsilon**2 * D2) - (epsilon * A2)
     S2 = np.linalg.inv(M2)
     
-    # 6. Calculate Matusita Distance
-    # Sum of squared differences of square roots
-    # Note: We take absolute value before sqrt to handle tiny negative floating point errors
+    # Calculate Matusita Distance
     diff = np.sqrt(np.abs(S1)) - np.sqrt(np.abs(S2))
     matusita_dist = np.sqrt(np.sum(diff**2))
     
-    # 7. Convert to Similarity (Inverse of Distance)
-    # Result is between 0 (totally different) and 1 (identical)
+    # Convert to Similarity (Inverse of Distance)
     similarity = 1 / (1 + matusita_dist)
     
     return similarity
@@ -289,8 +282,10 @@ def draw_plot(source: dict[int, nx.DiGraph], inferred: pd.DataFrame, test_name: 
     fig.legend(handles, labels, loc='lower center', ncol=6, bbox_to_anchor=(0.5, 0.01))
 
     plt.tight_layout()
-    plt.subplots_adjust(bottom=0.10, top=0.93) 
-    plt.show()
+    plt.subplots_adjust(bottom=0.10, top=0.93)
+    # Save the figure
+    os.makedirs("imgs", exist_ok=True)
+    plt.savefig(f"imgs/{test_name}.png")
 
 def main():
     parser = argparse.ArgumentParser()
