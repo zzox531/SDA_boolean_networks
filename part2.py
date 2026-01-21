@@ -3,10 +3,14 @@ import os
 import json
 import argparse
 from boolean_network import BN
+from pathlib import Path
 
+# Join path components in an OS-independent way:
+variables_path = Path("CHICKEN-SEX-DETERMINATION-REDUCED") / "metadata.json"
+functions_path = Path("CHICKEN-SEX-DETERMINATION-REDUCED") / "model.bnet"
 
-variables_path = "CHICKEN-SEX-DETERMINATION-REDUCED\metadata.json"
-functions_path = "CHICKEN-SEX-DETERMINATION-REDUCED\model.bnet"
+# variables_path = "CHICKEN-SEX-DETERMINATION-REDUCED/metadata.json"
+# functions_path = "CHICKEN-SEX-DETERMINATION-REDUCED/model.bnet"
 
 
 def read_network(): 
@@ -58,14 +62,14 @@ def generate_network(
         "parents_sync": parents_sync_serializable
     }
     os.makedirs(os.path.dirname(filename_prefix), exist_ok=True)
-    with open(filename_prefix + 'chicken.json', "w") as f:
+    with open(filename_prefix + '2137.json', "w") as f:
         json.dump(res, f, indent=2)
     
     if visuals:
         
         os.makedirs(os.path.dirname(visual_dir), exist_ok=True)
         if bn.num_nodes < 6:
-            bn.draw_state_transition_system(f"{visual_dir}chickenBN.png")
+            bn.draw_state_transition_system(f"{visual_dir}BN2137.png")
         
 def main():
     parser = argparse.ArgumentParser()
