@@ -337,15 +337,29 @@ The script takes out the id of the bn from the filename, e.g. for filename ```te
 
 The script infers the bayesian networks, saving its' output in 2 formats, saving the tests inside subdirectories created before. 
 
+### __Scoring Criteria__
+
+The script supports two scoring criteria for evaluating candidate network structures during inference:
+
+- BDE (Bayesian Dirichlet Equivalent)
+    A Bayesian scoring function that computes the marginal likelihood of the observed data given a network structure. It assumes a Dirichlet prior distribution over the network parameters and requires an equivalent sample size hyperparameter to control the strength of this prior. BDE is particularly useful when working with smaller datasets, as the prior helps regularize the learned structure.
+
+    
+
+- MDL (Minimum Description Length)
+    An information-theoretic scoring function based on the principle of finding the most compact representation of the data. It balances model fit against complexity by penalizing structures that require more bits to encode. MDL does not require prior hyperparameters and is closely related to the Bayesian Information Criterion (BIC).
+
 The whole pipeline of generating trajectories and infering the dynamic Bayesian Networks is provided by the ```perform_tests.sh``` bash script. This script executes the ```trajectory_inference.sh``` within its' logic.
 
 This bash script is the main orchestration entry point for running a suite of inference experiments end-to-end. It automates the two core steps of the pipeline:
 
-- Generate trajectory datasets by simulating the Boolean networks stored in ```datasets/boolean_networks.json```.
+- Generate trajectory datasets by simulating the Boolean networks stored in ```datasets/bn_*.json```.
 
 - Infer network structure from those trajectories using our inference wrapper (```trajectory_inference.sh```, which in turn calls BNFinder2).
 
 The goal is to evaluate how the inferred Dynamic Bayesian Network structures depend on the type and amount of observed dynamics (synchronous vs asynchronous trajectories, and sample size).
+
+The detailed description of how does BNFinder2 inference tool works can be found under this [link](https://bioputer.mimuw.edu.pl/software/bnf/methods.php)
 
 ### __Example usage__
 
@@ -363,13 +377,13 @@ and then execute the test for each config defined in the variable ```configs```.
 
 Each experiment is specified as a single quoted line with the following fields:
 
-```"ratio_lo ratio_hi fr_lo fr_hi len_lo len_hi sync_no async_no test_prefix seed criterion"```
+```"fr_lo fr_hi len_lo len_hi sync_no async_no test_prefix seed criterion"```
 
 These fields are parsed into variables and used to construct the generator command, inference command, and output paths. Since configs is a plain Bash array, the number of experiments is not fixed: the user can add any number of entries, remove entries, or adjust parameters to create new test regimes.
 
 ### __Meaning of each field__
 
-- ```ratio_lo```,```ratio_hi```
+- ```--ratio_lo```,```ratio_hi```
 
    Lower/uppoer bound for the transient to trajectory length ratio
 
@@ -422,8 +436,8 @@ These fields are parsed into variables and used to construct the generator comma
         -fr-lo <fr_lo> -fr-hi <fr_hi> \
         -len-lo <len_lo> -len-hi <len_hi> \
         -sync-no <sync_no> -async-no <async_no> \
-        -bn-ds datasets/boolean_networks.json \
-        -tg-ds datasets/<test_prefix>_trajectory_samples.json \
+        -bn-ds datasets/bn_ \
+        -tg-ds datasets/<test_prefix> \
         -tg-ds-txt datasets/<test_prefix> \
         -lf logs/traj_gen_<test_prefix>.log \
         -s <seed>
@@ -438,33 +452,3 @@ These fields are parsed into variables and used to construct the generator comma
     ```sh
     ./trajectory_inference.sh "<test_prefix>" "<test_prefix>" "<criterion>"
     ```
-
-## __Subtask 4.__
-The final task of the first part was to evaluate the quality of the network reconstruction. 
-We compared the structure of the inferred Dynamic Bayesian Networks against the original ground truth Boolean networks to measure how different dataset characteristics influence inference accuracy.
-
-### Evaluation Methodology
-To quantify the similarity between the Ground Truth ($G_{GT}$) and Inferred ($G_{INF}$) networks, we employed two structure-based graph distance measures:
-- **Spectral Distance:** Calculated as the Euclidean distance between the sorted eigenvalues of the Laplacian matrices of the two graphs.
-~~Justification: This metric captures the global topological properties ("shape") of the network rather than just local edge overlaps. It is robust to isomorphism and sensitive to significant structural deviations.~~
-- **DeltaCon Similarity:** A measure of the similarity in information flow (affinity) between the graphs.
-~~Justification: Unlike simple Hamming distance, DeltaCon accounts for node influence. If a specific edge is missing but the flow of information is preserved through a neighbor, DeltaCon penalizes the error less than if a critical bridge is broken. This makes it highly suitable for evaluating regulatory networks5.~~
-
-### Results & Observations
-Our analysis of the simulation data yielded several key insights regarding the inference process:
-1. **Scoring Criteria (MDL vs. BDE)**
-We compared the networks reconstructed using Minimal Description Length (MDL) and Bayesian-Dirichlet equivalence (BDE) scoring functions.
-There was negligible difference in reconstruction accuracy between the two criteria. For the majority of the Boolean networks tested, both scoring functions converged to structures with nearly identical similarity.
-
-2. **Update Modes (Synchronous vs. Asynchronous)**
-We analyzed how the update mode of the training data affects the ability of BNFinder2 to recover the true structure. As predicted, networks inferred from Synchronous data were significantly more similar to the ground truth than those inferred from Asynchronous data. Synchronous transitions provide deterministic state pairs ($S_t \rightarrow S_{t+1}$) which simplify the learning of dependencies compared to the stochastic nature of asynchronous updates.
-
-3. **Impact of Trajectory Length**
-We tested the relationship between the length of the simulation trajectories (amount of data) and the accuracy of the result.
-While accuracy generally improves with longer sequences, we observed a "saturation point" at approximately 100 time steps. Beyond this length, the marginal improvement in similarity scores diminished significantly. For synchronous data specifically, the inferred network structure stabilized relatively quickly and showed no structure change with trajectory length.
-
-4. **Transient-to-Length Ratio**
-We investigated the optimal proportion of transient states versus attractor states in the training data.
-The highest reconstruction accuracy was consistently observed when the ratio of transient states to total sequence length was between 0.2 and 0.4.
-Ratios significantly lower than this range (dominated by attractors) likely resulted in overfitting to steady states.
-Ratios significantly higher (dominated by transients) failed to provide enough repeated patterns for the probabilistic model to solidify.
