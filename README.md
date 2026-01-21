@@ -337,11 +337,21 @@ The script takes out the id of the bn from the filename, e.g. for filename ```te
 
 The script infers the bayesian networks, saving its' output in 2 formats, saving the tests inside subdirectories created before. 
 
+### __Scoring Criteria__
+
+The script supports two scoring criteria for evaluating candidate network structures during inference:
+
+- BDE (Bayesian Dirichlet Equivalent)
+    A Bayesian scoring function that computes the marginal likelihood of the observed data given a network structure. It assumes a Dirichlet prior distribution over the network parameters and requires an equivalent sample size hyperparameter to control the strength of this prior. BDE is particularly useful when working with smaller datasets, as the prior helps regularize the learned structure.
+
+- MDL (Minimum Description Length)
+    An information-theoretic scoring function based on the principle of finding the most compact representation of the data. It balances model fit against complexity by penalizing structures that require more bits to encode. MDL does not require prior hyperparameters and is closely related to the Bayesian Information Criterion (BIC).
+
 The whole pipeline of generating trajectories and infering the dynamic Bayesian Networks is provided by the ```perform_tests.sh``` bash script. This script executes the ```trajectory_inference.sh``` within its' logic.
 
 This bash script is the main orchestration entry point for running a suite of inference experiments end-to-end. It automates the two core steps of the pipeline:
 
-- Generate trajectory datasets by simulating the Boolean networks stored in ```datasets/boolean_networks.json```.
+- Generate trajectory datasets by simulating the Boolean networks stored in ```datasets/bn_*.json```.
 
 - Infer network structure from those trajectories using our inference wrapper (```trajectory_inference.sh```, which in turn calls BNFinder2).
 
@@ -422,8 +432,8 @@ These fields are parsed into variables and used to construct the generator comma
         -fr-lo <fr_lo> -fr-hi <fr_hi> \
         -len-lo <len_lo> -len-hi <len_hi> \
         -sync-no <sync_no> -async-no <async_no> \
-        -bn-ds datasets/boolean_networks.json \
-        -tg-ds datasets/<test_prefix>_trajectory_samples.json \
+        -bn-ds datasets/bn_ \
+        -tg-ds datasets/<test_prefix> \
         -tg-ds-txt datasets/<test_prefix> \
         -lf logs/traj_gen_<test_prefix>.log \
         -s <seed>

@@ -2,7 +2,7 @@
 
 set -e
 
-# configs: "ratio_lo ratio_hi fr_lo fr_hi len_lo len_hi sync_no async_no test_prefix seed criterion"
+# configs: "ratio_lo ratio_hi fr_lo fr_hi len_lo len_hi sync_no async_no test_prefix seed"
 configs=(
     "0.25 0.4 1 1  25  25 10 0    len_small2-025-sync 42"
     "0.25 0.4 1 1  50  50 10 0    len_small2-050-sync 42"
@@ -48,9 +48,10 @@ configs=(
     "0.7 0.8 1 1 50 300  0 10  ratio_small2-0.8-async 42"
     "0.8 0.9 1 1 50 300  0 10  ratio_small2-0.9-async 42"
     "0.9 1.0 1 1 50 300  0 10  ratio_small2-1.0-async 42"
-) 
+)
 
 BN_PREF="datasets/bn_"
+BDE_PRIORS=(1 10 100 1000)
 
 mkdir -p datasets logs inference
 
@@ -61,7 +62,6 @@ for conf in "${configs[@]}"; do
 
     tg_json="datasets/${test_prefix}_trajs_bn_"
     log_file="logs/traj_gen_${test_prefix}.log"
-    out_prefix="inference/${test_prefix}"
 
     echo "=== Generating trajectories for $test_prefix ==="
     python3 trajectory_generator.py \
@@ -80,7 +80,15 @@ for conf in "${configs[@]}"; do
         -s $seed
 
     echo "=== Running inference for $test_prefix ==="
-    ./trajectory_inference.sh "${test_prefix}-BDE" "$test_prefix" "BDE"
+
+    # Run BDE inference with different prior values
+    for prior in "${BDE_PRIORS[@]}"; do
+        echo "  Running BDE with prior=$prior"
+        ./trajectory_inference.sh "${test_prefix}-BDE-p${prior}" "$test_prefix" "BDE" "$prior"
+    done
+
+    # Run MDL inference
+    echo "  Running MDL"
     ./trajectory_inference.sh "${test_prefix}-MDL" "$test_prefix" "MDL"
 
     echo "--- Completed $test_prefix ---"
