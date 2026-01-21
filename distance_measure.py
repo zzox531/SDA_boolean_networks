@@ -9,38 +9,16 @@ import os
 import json
 import argparse
 import re
-import itertools
+from tqdm import tqdm
+import pandas as pd
+import glob
 
 from boolean_network import BN
 from bn_generator import load_bn_from_path, get_bn_paths
 
-class BN_params():
-    """
-    Class containing Boolean Network and it's additional parameters:
-
-    Args:
-        BN_struct (BN): A Boolean Network representation
-        vars (list[str]): List of it's variables
-        parents (list[list[str]]): Dictionary with all variable's parents
-        MBs (list[list[str]]): Dictionary with all variable's Markov Blankets
-    """
-
-    def __init__(
-            self,
-            BN_struct: BN,
-            vars: list,
-            parents: dict,
-            MBs: dict
-        ):
-        self.BN_struct = BN_struct
-        self.vars = vars
-        self.parents = parents
-        self.MBs = MBs
-
-
 def parse_source(
     source_path: str
-) -> BN_params:
+) -> nx.DiGraph:
     """
     This function parses all Boolean Networks saved in source_path. The format
     allows for easy conversion to BN class.
@@ -49,216 +27,271 @@ def parse_source(
         source_path (str): Path to a file containting source BNs description
     
     Returns:
-        BN_params: Identified BN with additional details
+        nx.DiGraph: Parsed BN in networkx DiGraph format
     """
     logging.info(f"Parsing BNs from file {source_path}")
     bn_struct = load_bn_from_path(source_path)
-    
-    print(bn_struct.node_names)
-    print(bn_struct.functions_str)
-    sort = sorted(list(zip(bn_struct.node_names, bn_struct.functions_str)), key=lambda x:x[0])
-    vars, funs = map(list, zip(*sort))
-    parents = {v: list(set(re.findall("x[0-9]*", f))) for v, f in zip(vars, funs)}
-    children = {v: [w for w in vars if v in parents[w]] for v in vars}
-    MBs = {v: list(
-                set(itertools.chain(
-                parents[v], 
-                children[v], 
-                itertools.chain.from_iterable(parents[x] for x in children[v])
-                )) - {v}
-                )
-            for v in vars}
-    logging.info(
-        f"Received following BN:\n"
-        f"\tVariables: {vars}\n"
-        f"\tParents: {parents}\n"
-        f"\tChildren: {children}\n"
-        f"\tMarkov Blankets: {MBs}\n"
-        f"Passing the BN to compare."
-    )
-    return BN_params(bn_struct, vars, parents, MBs)
+    G = nx.DiGraph()
+
+    G.add_nodes_from(bn_struct.node_names)
+
+    for i, f in enumerate(bn_struct.functions_str):
+        parents = re.findall("x[0-9]*", f)
+        for p in parents:
+            G.add_edge(p, f"{bn_struct.node_names[i]}")
+
+    logging.info(f"Graph: {G}, with nodes {G.nodes} and with edges {G.edges}")
+    # nx.draw(G)
+    # plt.show()
+    return G
 
 def parse_infer(
-        infer_path: str, 
-        bn_id: int
-    ) -> BN_params:
+        infer_path: str,
+    ) -> nx.DiGraph:
     """
     This function parses Dynamic Bayesian Networks inferred by BNFinder. It uses
-    cpd format. It also computes additional details to make them similar to BN syntax.
+    cpd format.
 
     Args:
         infer_path (str): Name of a test case. The function looks up proper .cpd
             file by itself
-        dbn_num (int): Number of expected networks. Necessary because all networks
-            live in individual files.
     
     Returns:
-        BN_params: inferred BN with additional details.
+        nx.DiGraph: inferred BN in networkx DiGraph format.
     """
-    print(f"./inference/cpd/{infer_path}_{bn_id}.cpd")
-    with open(f"./inference/cpd/{infer_path}_{bn_id}.cpd", 'r') as f:
-        data = f.read()
-        netw = eval(data)
-        vars = list(netw.keys())
-        parents = {v: netw[v]['pars'] for v in vars}
-        children = {v: [w for w in vars if v in parents[w]] for v in vars}
-        MBs = {v: list(
-                set(itertools.chain(
-                    parents[v], 
-                    children[v], 
-                    itertools.chain.from_iterable(parents[x] for x in children[v])
-                )) - {v}
-                )
-            for v in vars}
+    logging.info(f"Loading inferred BN from {infer_path}")
+    G = nx.DiGraph()
+    with open(f"{infer_path}", 'r') as f:
+        data = eval(f.read())
+        
+        for k, v in data.items():
+            # logging.info(f"Variable {k} with data {v}")
+            G.add_node(k)
+            for p in v['pars']:
+                if p != k:
+                    G.add_edge(p, k)
 
-        values = [
-            [
-                max(d, key=d.get) for k, d in netw[v]['cpds'].items() if k != None
-            ] for v in vars
-        ]
-        assert(not any(None in v for v in values))
+    logging.info(f"Inferred graph: {G}, with nodes {G.nodes} and with edges {G.edges}")
+    # nx.draw(G)
+    # plt.show()
+    return G
 
-        # Inferred clause generation (from bn_generator)
-        funs = []
-        for v_num, v in enumerate(vars):
-            size = len(parents[v])
-            v_pars = parents[v][::-1]
-            clause_parts = []
-            for i, val in enumerate(values[v_num]):
-                if val == 1:
-                    clause_vars = []
-                    for e in range(size):
-                        # Iterator e is used as a bit mask for current variable assignment.
-                        if i & 2 ** e:
-                            clause_vars.append(v_pars[e])
-                        else:
-                            clause_vars.append("~" + v_pars[e])
-                    clause_parts.append("(" + " & ".join(clause_vars) + ")")
-            if len(parents[v]) == 0:
-                funs.append("TRUE" if values[v_num][0] == 1 else "FALSE")
-            elif len(clause_parts) > 0:
-                funs.append(" | ".join(clause_parts))
+def parse_all_source(
+    bn_files_prefix: str
+) -> dict[int, nx.DiGraph]:
+    """
+    This function parses all source BNs from given prefix.
+    Args:
+        bn_files_prefix (str): File path prefix to source BNs
+
+    Returns:
+        dict[int, nx.DiGraph]: Dictionary of parsed source BNs
+    """
+    bn_paths = glob.glob(bn_files_prefix + "*.json")
+    source_bns = {}
+    for path in bn_paths:
+        num = int(path[len(bn_files_prefix):-5])
+        source_bns[num] = parse_source(path)
+    return source_bns
+
+def parse_all_infer(
+    infer_dir: str
+) -> pd.DataFrame:
+    """
+    This function parses all BNs inferred from given directory.
+    Args:
+        infer_dir (str): Directory name for inferred BNs
+
+    Returns:
+        pd.DataFrame: DataFrame containing parsed inferred BNs
+    """
+    infer_paths = glob.glob(os.path.join(infer_dir, "*.cpd"))
+    # infer_bns = pd.DataFrame(columns=['type', 'value', 'sync', 'criterion', 'bn_number', 'graph'])
+    rows = []
+    pbar = tqdm(infer_paths, desc="Parsing inferred BNs")
+    for path in pbar:
+        name = os.path.basename(path)
+        name = os.path.splitext(name)[0]
+        logging.info(f"Parsing inferred BN: {name}")
+        args = name.split('-')
+        rows.append({
+            'type': str(args[0]),
+            'value': float(args[1]),
+            'sync': args[2] == 'sync',
+            'bde': args[3] == 'BDE',
+            'bn_number': int(args[4]),
+            'graph': parse_infer(path)
+        })
+    infer_bns = pd.DataFrame(rows)
+    logging.info(f"Parsed inferred BNs DataFrame:\n{infer_bns.head()}")
+    return infer_bns
+
+def spectral_similarity(G: nx.DiGraph, H: nx.DiGraph):
+    # Compute eigenvalues and sort them
+    eig_1 = nx.laplacian_spectrum(G)
+    eig_1.sort()
+    eig_2 = nx.laplacian_spectrum(H)
+    eig_2.sort()
+
+    # Compute spectral distance
+    spectral_distance = np.linalg.norm(eig_1 - eig_2)
+    logging.info(f'Spectral distance: {spectral_distance}\nSpectral similarity: {1 / (1 + spectral_distance)}')
+    return 1 / (1 + spectral_distance)
+
+def delta_con_similarity(G1, G2):
+    """
+    Calculates DeltaCon similarity for small graphs (dense matrices).
+    Ideal for N <= 1000 nodes.
+    """
+    # 1. Align Nodes
+    # Get all unique nodes from both graphs and sort them to ensure matching indices
+    nodes = sorted(list(set(G1.nodes()) | set(G2.nodes())))
+    n = len(nodes)
+    
+    # Get Dense Adjacency Matrices
+    A1 = nx.to_numpy_array(G1, nodelist=nodes)
+    A2 = nx.to_numpy_array(G2, nodelist=nodes)
+    
+    # Create Degree Matrices (Diagonal)
+    D1 = np.diag(np.sum(A1, axis=1))
+    D2 = np.diag(np.sum(A2, axis=1))
+    
+    # Determine Epsilon (Weighting Factor)
+    max_d = max(D1.max(), D2.max())
+    epsilon = 1 / (1 + max_d)
+    
+    # Compute Affinity Matrices (S)
+    I = np.eye(n)
+    
+    # Matrix 1
+    M1 = I + (epsilon**2 * D1) - (epsilon * A1)
+    S1 = np.linalg.inv(M1)
+    
+    # Matrix 2
+    M2 = I + (epsilon**2 * D2) - (epsilon * A2)
+    S2 = np.linalg.inv(M2)
+    
+    # Calculate Matusita Distance
+    diff = np.sqrt(np.abs(S1)) - np.sqrt(np.abs(S2))
+    matusita_dist = np.sqrt(np.sum(diff**2))
+    
+    # Convert to Similarity (Inverse of Distance)
+    similarity = 1 / (1 + matusita_dist)
+    
+    return similarity
+
+def draw_plot(source: dict[int, nx.DiGraph], inferred: pd.DataFrame, test_name: str, title: str, value: str):
+    row_configs = [
+        (True, True, "Sync BDE"),
+        (True, False, "Sync MDL"),
+        (False, True, "Async BDE"),
+        (False, False, "Async MDL")
+    ]
+
+    # Create 4 rows x 2 columns grid
+    fig, axes = plt.subplots(4, 2, figsize=(16, 20))
+    fig.suptitle(f"{title}", fontsize=16)
+
+    for row_idx, (is_sync, is_bde, label) in enumerate(row_configs):
+        
+        # Select the subplots for this row
+        ax_spectral = axes[row_idx, 0]
+        ax_deltacon = axes[row_idx, 1]
+        
+        # Set titles and labels
+        ax_spectral.set_ylabel(f"{label}")
+        
+        if row_idx == 0:
+            ax_spectral.set_title("Spectral Distance (Lower is better)")
+            ax_deltacon.set_title("DeltaCon Similarity (Higher is better)")
+        if row_idx == 3:
+            ax_spectral.set_xlabel(f"{value}")
+            ax_deltacon.set_xlabel(f"{value}")
+
+        # For mean calculation
+        spectral_sum = None
+        deltacon_sum = None
+        sorted_x = None
+
+        # Plot all BNs
+        num_bns = inferred['bn_number'].nunique()
+        
+        for bn_id in range(num_bns): 
+            sliced = inferred[
+                (inferred['bn_number'] == bn_id) & 
+                (inferred['type'] == test_name) & 
+                (inferred['bde'] == is_bde) &
+                (inferred['sync'] == is_sync)
+            ]
+            
+            sliced = sliced.sort_values(by='value', ascending=True)
+            
+            if sliced.empty:
+                logging.warning(f"No data for BN {bn_id} with sync={is_sync} and bde={is_bde}")
+                continue
+
+            x_values = sliced['value'].tolist()
+            y_spectral = []
+            y_deltacon = []
+            
+            G_source = source[bn_id]
+            
+            logging.info(f"Processing BN {bn_id} for sync={is_sync}, bde={is_bde}, test={test_name}, values={x_values}")
+            for i, G_inferred in enumerate(sliced['graph']):
+                logging.info(f"Comparing source BN {bn_id} with inferred graph for value {x_values[i]}\nG1 structure: Nodes {G_source.nodes}, Edges {G_source.edges}\nG2 structure: Nodes {G_inferred.nodes}, Edges {G_inferred.edges}")
+                spec = spectral_similarity(G_source, G_inferred)
+                y_spectral.append(spec)
+                
+                dc = delta_con_similarity(G_source, G_inferred)
+                y_deltacon.append(dc)
+            
+            # For mean calculation
+            if spectral_sum is None:
+                spectral_sum = np.array(y_spectral)
+                deltacon_sum = np.array(y_deltacon)
+                sorted_x = x_values
             else:
-                funs.append("(" + ") & (".join(v_pars) + ") & FALSE")
-        
-        infer_BN = BN(vars, funs, set(), set(), {}, {})
-        logging.info(
-            f"Received following BN:\n"
-            f"\tVariables: {vars}\n"
-            f"\tParents: {parents}\n"
-            f"\tChildren: {children}\n"
-            f"\tMarkov Blankets: {MBs}\n"
-            f"\tMost probable values: {values}\n"
-            f"\tInferred functions: {funs}\n"
-            f"Passing the BN to compare."
-        )
-        return BN_params(infer_BN, vars, parents, MBs)
+                spectral_sum += np.array(y_spectral)
+                deltacon_sum += np.array(y_deltacon)
 
-def measure_distance(bn_path: str, infer_path: str):
-    source_bn_paths = get_bn_paths(bn_path)
-
-    print(f'Comparing networks from test {infer_path}...')
-    for path in source_bn_paths:
-        bn_id = int(path.replace(bn_path, "").replace(".json", ""))
-        print('\n==== TEST START ====\n\n')
-        print(f'Network pair no. {bn_id}\n')
-
-        s = parse_source(path)
-        i = parse_infer(infer_path, bn_id)
-
-        # Precision, Recall, F1 on parent sets.
-        tp = 0
-        fn = 0
-        fp = 0
-        for v in s.vars:
-            par_s = set(s.parents[v])
-            par_i = set(i.parents[v])
-            tp += len(par_s & par_i)
-            fp += len(par_i - par_s)
-            fn += len(par_s - par_i)
-        
-        prec   = tp / (tp + fp)
-        recall = tp / (tp + fn)
-        f1     = (2 * prec * recall) / (prec + recall)
-        print(
-            f"Scores on parent sets: Precision = {prec}, "
-            f"Recall = {recall}, F1 = {f1}\n"
-        )
-
-        # Precision, Recall, F1 on Markov Blankets
-        tp = 0
-        fn = 0
-        fp = 0
-        for v in s.vars:
-            mb_s = set(s.MBs[v])
-            mb_i = set(i.MBs[v])
+            # Plot lines
+            ax_spectral.plot(x_values, y_spectral, marker='o', 
+                             alpha=0.3, linewidth=1,  # Low opacity
+                             label=f'BN {bn_id}')
             
-            tp += len(mb_s & mb_i)
-            fp += len(mb_i - mb_s)
-            fn += len(mb_s - mb_i)
+            ax_deltacon.plot(x_values, y_deltacon, marker='o', # linestyle='--', 
+                             alpha=0.3, linewidth=1,  # Low opacity
+                             label=f'BN {bn_id}')
 
-        prec   = tp / (tp + fp)
-        recall = tp / (tp + fn)
-        f1     = (2 * prec * recall) / (prec + recall)
-        print(
-            f"Scores on Markov Blankets: Precision = {prec}, "
-            f"Recall = {recall}, F1 = {f1}\n"
-        )
+        # Calculate mean        
+        mean_spectral = spectral_sum / num_bns
+        mean_deltacon = deltacon_sum / num_bns
+        
+        # Plot Mean Spectral
+        ax_spectral.plot(sorted_x, mean_spectral, 
+                         color='black', linewidth=3, # Thick and distinct
+                         label='Mean')
+        
+        # Plot Mean DeltaCon
+        ax_deltacon.plot(sorted_x, mean_deltacon, 
+                         color='black', linewidth=3, linestyle='--',
+                         label='Mean')
 
-        # % of correct synchronous transitions
-        state_size = len(s.vars)
-        good_pairs = 0
-        for cnt in range(2 ** state_size):
-            state = []
-            for var in range(state_size):
-                if cnt & (2 ** var):
-                    state.append(1)
-                else:
-                    state.append(0)
-            
-            s_n_state = s.BN_struct.get_neighbor_state_sync(state)
-            i_n_state = i.BN_struct.get_neighbor_state_sync(state)
-            good_pairs += (1 if s_n_state == i_n_state else 0)
-        acc = good_pairs / (2 ** state_size)
-        print(f"Accuracy of next state in synchronous mode = {acc}\n")
+    # Add legend (ensure 'Mean' is included)
+    handles, labels = axes[0, 0].get_legend_handles_labels()
+    fig.legend(handles, labels, loc='lower center', ncol=6, bbox_to_anchor=(0.5, 0.01))
 
-        # Precision, Recall, F1 on reachable states in async mode
-        tp = 0
-        fn = 0
-        fp = 0
-        state_size = len(s.vars)
-        for cnt in range(2 ** state_size):
-            state = []
-            for var in range(state_size):
-                if cnt & (2 ** var):
-                    state.append(1)
-                else:
-                    state.append(0)
-
-            async_n_s = s.BN_struct.get_neighbor_states_async(state)
-            async_n_i = i.BN_struct.get_neighbor_states_async(state)
-            tp += len(async_n_s & async_n_i)
-            fp += len(async_n_i - async_n_s)
-            fn += len(async_n_s - async_n_i)
-
-        prec   = tp / (tp + fp)
-        recall = tp / (tp + fn)
-        f1     = (2 * prec * recall) / (prec + recall)
-        print(
-            f"Scores on asynchronous neighbor sets: Precision = {prec}, "
-            f"Recall = {recall}, F1 = {f1}\n"
-        )
-
-
-        print('\n==== TEST END ====\n')
-
-
+    plt.tight_layout()
+    plt.subplots_adjust(bottom=0.10, top=0.93)
+    # Save the figure
+    os.makedirs("imgs", exist_ok=True)
+    plt.savefig(f"imgs/{test_name}.png")
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("-bn-pref", "--bn-files-prefix", type=str, required=True, help="File path prefix to source BNs")
-    parser.add_argument("-i", "--inference", type=str, required=True, help="File name prefix to inferenced DBNs")
-
+    parser.add_argument("-bn-pref", "--bn-files-prefix", type=str, help="File path prefix to source BNs", default="datasets/bn_")
+    parser.add_argument("-infer-dir", "--inference-dir", type=str, help="Directory name for inferenced DBNs", default="inference/cpd/")
+    parser.add_argument("-t", "--test-name", type=str, help="Test name to filter BNs, all by default")
     args = parser.parse_args()
 
     os.makedirs("logs", exist_ok=True)
@@ -269,7 +302,14 @@ def main():
         format="%(asctime)s [%(levelname)s] %(message)s"
     )
 
-    measure_distance(args.bn_files_prefix, args.inference)
+    source = parse_all_source(f'{args.bn_files_prefix}')
+    inferred = parse_all_infer(f'{args.inference_dir}')
+
+    if args.test_name is None:
+        for test in inferred['type'].unique():
+            draw_plot(source, inferred, test, 'Distance Measures between Source and Inferred BNs', 'Compared value')
+    else:
+        draw_plot(source, inferred, args.test_name, 'Distance Measures between Source and Inferred BNs', 'Transient num to length ratio')
 
 if __name__ == "__main__":
     main()
