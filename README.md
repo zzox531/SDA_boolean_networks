@@ -438,3 +438,33 @@ These fields are parsed into variables and used to construct the generator comma
     ```sh
     ./trajectory_inference.sh "<test_prefix>" "<test_prefix>" "<criterion>"
     ```
+
+## __Subtask 4.__
+The final task of the first part was to evaluate the quality of the network reconstruction. 
+We compared the structure of the inferred Dynamic Bayesian Networks against the original ground truth Boolean networks to measure how different dataset characteristics influence inference accuracy.
+
+### Evaluation Methodology
+To quantify the similarity between the Ground Truth ($G_{GT}$) and Inferred ($G_{INF}$) networks, we employed two structure-based graph distance measures:
+- **Spectral Distance:** Calculated as the Euclidean distance between the sorted eigenvalues of the Laplacian matrices of the two graphs.
+~~Justification: This metric captures the global topological properties ("shape") of the network rather than just local edge overlaps. It is robust to isomorphism and sensitive to significant structural deviations.~~
+- **DeltaCon Similarity:** A measure of the similarity in information flow (affinity) between the graphs.
+~~Justification: Unlike simple Hamming distance, DeltaCon accounts for node influence. If a specific edge is missing but the flow of information is preserved through a neighbor, DeltaCon penalizes the error less than if a critical bridge is broken. This makes it highly suitable for evaluating regulatory networks5.~~
+
+### Results & Observations
+Our analysis of the simulation data yielded several key insights regarding the inference process:
+1. **Scoring Criteria (MDL vs. BDE)**
+We compared the networks reconstructed using Minimal Description Length (MDL) and Bayesian-Dirichlet equivalence (BDE) scoring functions.
+There was negligible difference in reconstruction accuracy between the two criteria. For the majority of the Boolean networks tested, both scoring functions converged to structures with nearly identical similarity.
+
+2. **Update Modes (Synchronous vs. Asynchronous)**
+We analyzed how the update mode of the training data affects the ability of BNFinder2 to recover the true structure. As predicted, networks inferred from Synchronous data were significantly more similar to the ground truth than those inferred from Asynchronous data. Synchronous transitions provide deterministic state pairs ($S_t \rightarrow S_{t+1}$) which simplify the learning of dependencies compared to the stochastic nature of asynchronous updates.
+
+3. **Impact of Trajectory Length**
+We tested the relationship between the length of the simulation trajectories (amount of data) and the accuracy of the result.
+While accuracy generally improves with longer sequences, we observed a "saturation point" at approximately 100 time steps. Beyond this length, the marginal improvement in similarity scores diminished significantly. For synchronous data specifically, the inferred network structure stabilized relatively quickly and showed no structure change with trajectory length.
+
+4. **Transient-to-Length Ratio**
+We investigated the optimal proportion of transient states versus attractor states in the training data.
+The highest reconstruction accuracy was consistently observed when the ratio of transient states to total sequence length was between 0.2 and 0.4.
+Ratios significantly lower than this range (dominated by attractors) likely resulted in overfitting to steady states.
+Ratios significantly higher (dominated by transients) failed to provide enough repeated patterns for the probabilistic model to solidify.
