@@ -142,6 +142,8 @@ An example of such a file format is:
 }
 ```
 
+Even though such a file is quite big in terms of a single BN, saving the necessary data allows us to be able to refer to such data in $O(1)$ time, which greatly improves the efficiency of trajectory generation & BN inference. 
+
 ## __Subtask 2.__
 
 Second subtask was to simulate trajectories of the generated networks in both synchronous and asynchronous modes to create datasets. This functionality is provided by the ```trajectory_generator.py``` python script. Its' example usage is: 
