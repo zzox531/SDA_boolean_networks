@@ -1,0 +1,352 @@
+[
+  {
+    "synchronous": false,
+    "frequency": 1,
+    "length": 5,
+    "target_ratio": 0.5,
+    "generated_ratio": 0.4,
+    "states": [
+      "10001001011101",
+      "10001001011101",
+      "10001011011101",
+      "10001011011101",
+      "10001011011101"
+    ]
+  },
+  {
+    "synchronous": false,
+    "frequency": 1,
+    "length": 5,
+    "target_ratio": 0.5,
+    "generated_ratio": 0.4,
+    "states": [
+      "10011101011111",
+      "10011101011111",
+      "10001101011111",
+      "10001101011111",
+      "10001101011111"
+    ]
+  },
+  {
+    "synchronous": false,
+    "frequency": 1,
+    "length": 5,
+    "target_ratio": 0.5,
+    "generated_ratio": 0.4,
+    "states": [
+      "11001001011111",
+      "11001101011111",
+      "10001101011111",
+      "10001101011111",
+      "10001101011111"
+    ]
+  },
+  {
+    "synchronous": false,
+    "frequency": 1,
+    "length": 5,
+    "target_ratio": 0.5,
+    "generated_ratio": 0.4,
+    "states": [
+      "00001001011111",
+      "10001001011111",
+      "10001101011111",
+      "10001101011111",
+      "10001101011111"
+    ]
+  },
+  {
+    "synchronous": false,
+    "frequency": 1,
+    "length": 5,
+    "target_ratio": 0.5,
+    "generated_ratio": 0.4,
+    "states": [
+      "10001001010101",
+      "10001001011101",
+      "10001011011101",
+      "10001011011101",
+      "10001011011101"
+    ]
+  },
+  {
+    "synchronous": false,
+    "frequency": 1,
+    "length": 5,
+    "target_ratio": 0.5,
+    "generated_ratio": 0.4,
+    "states": [
+      "10001101001111",
+      "10001101001111",
+      "10001101011111",
+      "10001101011111",
+      "10001101011111"
+    ]
+  },
+  {
+    "synchronous": false,
+    "frequency": 1,
+    "length": 5,
+    "target_ratio": 0.5,
+    "generated_ratio": 0.4,
+    "states": [
+      "10011011011101",
+      "10011011011101",
+      "10001011011101",
+      "10001011011101",
+      "10001011011101"
+    ]
+  },
+  {
+    "synchronous": false,
+    "frequency": 1,
+    "length": 5,
+    "target_ratio": 0.5,
+    "generated_ratio": 0.4,
+    "states": [
+      "10001001011101",
+      "10001001011101",
+      "10001011011101",
+      "10001011011101",
+      "10001011011101"
+    ]
+  },
+  {
+    "synchronous": false,
+    "frequency": 1,
+    "length": 5,
+    "target_ratio": 0.5,
+    "generated_ratio": 0.4,
+    "states": [
+      "10001001010101",
+      "10001001011101",
+      "10001011011101",
+      "10001011011101",
+      "10001011011101"
+    ]
+  },
+  {
+    "synchronous": false,
+    "frequency": 1,
+    "length": 5,
+    "target_ratio": 0.5,
+    "generated_ratio": 0.4,
+    "states": [
+      "00001101011011",
+      "10001101011011",
+      "10001101011111",
+      "10001101011111",
+      "10001101011111"
+    ]
+  },
+  {
+    "synchronous": false,
+    "frequency": 1,
+    "length": 5,
+    "target_ratio": 0.5,
+    "generated_ratio": 0.4,
+    "states": [
+      "10001101001111",
+      "10001101001111",
+      "10001101011111",
+      "10001101011111",
+      "10001101011111"
+    ]
+  },
+  {
+    "synchronous": false,
+    "frequency": 1,
+    "length": 5,
+    "target_ratio": 0.5,
+    "generated_ratio": 0.4,
+    "states": [
+      "10001111011111",
+      "10001111011111",
+      "10001101011111",
+      "10001101011111",
+      "10001101011111"
+    ]
+  },
+  {
+    "synchronous": false,
+    "frequency": 1,
+    "length": 5,
+    "target_ratio": 0.5,
+    "generated_ratio": 0.4,
+    "states": [
+      "10001001011101",
+      "10001001011101",
+      "10001011011101",
+      "10001011011101",
+      "10001011011101"
+    ]
+  },
+  {
+    "synchronous": false,
+    "frequency": 1,
+    "length": 5,
+    "target_ratio": 0.5,
+    "generated_ratio": 0.4,
+    "states": [
+      "10001111011101",
+      "10001111011101",
+      "10001011011101",
+      "10001011011101",
+      "10001011011101"
+    ]
+  },
+  {
+    "synchronous": false,
+    "frequency": 1,
+    "length": 5,
+    "target_ratio": 0.5,
+    "generated_ratio": 0.4,
+    "states": [
+      "10011101011111",
+      "10011101011111",
+      "10001101011111",
+      "10001101011111",
+      "10001101011111"
+    ]
+  },
+  {
+    "synchronous": false,
+    "frequency": 1,
+    "length": 5,
+    "target_ratio": 0.5,
+    "generated_ratio": 0.4,
+    "states": [
+      "10001101010111",
+      "10001101010111",
+      "10001101011111",
+      "10001101011111",
+      "10001101011111"
+    ]
+  },
+  {
+    "synchronous": false,
+    "frequency": 1,
+    "length": 5,
+    "target_ratio": 0.5,
+    "generated_ratio": 0.4,
+    "states": [
+      "10001001010101",
+      "10001001011101",
+      "10001011011101",
+      "10001011011101",
+      "10001011011101"
+    ]
+  },
+  {
+    "synchronous": false,
+    "frequency": 1,
+    "length": 5,
+    "target_ratio": 0.5,
+    "generated_ratio": 0.4,
+    "states": [
+      "10011001011101",
+      "10001001011101",
+      "10001011011101",
+      "10001011011101",
+      "10001011011101"
+    ]
+  },
+  {
+    "synchronous": false,
+    "frequency": 1,
+    "length": 5,
+    "target_ratio": 0.5,
+    "generated_ratio": 0.4,
+    "states": [
+      "00001101011111",
+      "00001101011111",
+      "10001101011111",
+      "10001101011111",
+      "10001101011111"
+    ]
+  },
+  {
+    "synchronous": false,
+    "frequency": 1,
+    "length": 5,
+    "target_ratio": 0.5,
+    "generated_ratio": 0.4,
+    "states": [
+      "10001001011101",
+      "10001001011101",
+      "10001011011101",
+      "10001011011101",
+      "10001011011101"
+    ]
+  },
+  {
+    "synchronous": false,
+    "frequency": 1,
+    "length": 5,
+    "target_ratio": 0.5,
+    "generated_ratio": 0.4,
+    "states": [
+      "10001100011111",
+      "10001100011111",
+      "10001101011111",
+      "10001101011111",
+      "10001101011111"
+    ]
+  },
+  {
+    "synchronous": false,
+    "frequency": 1,
+    "length": 5,
+    "target_ratio": 0.5,
+    "generated_ratio": 0.4,
+    "states": [
+      "00001101011111",
+      "00001101011111",
+      "10001101011111",
+      "10001101011111",
+      "10001101011111"
+    ]
+  },
+  {
+    "synchronous": false,
+    "frequency": 1,
+    "length": 5,
+    "target_ratio": 0.5,
+    "generated_ratio": 0.4,
+    "states": [
+      "10001101001111",
+      "10001101001111",
+      "10001101011111",
+      "10001101011111",
+      "10001101011111"
+    ]
+  },
+  {
+    "synchronous": false,
+    "frequency": 1,
+    "length": 5,
+    "target_ratio": 0.5,
+    "generated_ratio": 0.4,
+    "states": [
+      "00001101011111",
+      "00001101011111",
+      "10001101011111",
+      "10001101011111",
+      "10001101011111"
+    ]
+  },
+  {
+    "synchronous": false,
+    "frequency": 1,
+    "length": 5,
+    "target_ratio": 0.5,
+    "generated_ratio": 0.4,
+    "states": [
+      "00001101011111",
+      "00001101011111",
+      "10001101011111",
+      "10001101011111",
+      "10001101011111"
+    ]
+  }
+]

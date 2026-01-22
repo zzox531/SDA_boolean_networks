@@ -1,0 +1,477 @@
+[
+  {
+    "synchronous": false,
+    "frequency": 1,
+    "length": 10,
+    "target_ratio": 0.5,
+    "generated_ratio": 0.4,
+    "states": [
+      "00101",
+      "00101",
+      "00001",
+      "00001",
+      "01001",
+      "01001",
+      "01001",
+      "01001",
+      "01001",
+      "01001"
+    ]
+  },
+  {
+    "synchronous": false,
+    "frequency": 1,
+    "length": 10,
+    "target_ratio": 0.5,
+    "generated_ratio": 0.4,
+    "states": [
+      "10000",
+      "10000",
+      "11000",
+      "01000",
+      "01001",
+      "01001",
+      "01001",
+      "01001",
+      "01001",
+      "01001"
+    ]
+  },
+  {
+    "synchronous": false,
+    "frequency": 1,
+    "length": 10,
+    "target_ratio": 0.5,
+    "generated_ratio": 0.5,
+    "states": [
+      "11011",
+      "11011",
+      "11011",
+      "11001",
+      "11001",
+      "01001",
+      "01001",
+      "01001",
+      "01001",
+      "01001"
+    ]
+  },
+  {
+    "synchronous": false,
+    "frequency": 1,
+    "length": 10,
+    "target_ratio": 0.5,
+    "generated_ratio": 0.5,
+    "states": [
+      "11100",
+      "01100",
+      "01100",
+      "01100",
+      "01000",
+      "01001",
+      "01001",
+      "01001",
+      "01001",
+      "01001"
+    ]
+  },
+  {
+    "synchronous": false,
+    "frequency": 1,
+    "length": 10,
+    "target_ratio": 0.5,
+    "generated_ratio": 0.5,
+    "states": [
+      "10011",
+      "00011",
+      "00001",
+      "00001",
+      "00001",
+      "01001",
+      "01001",
+      "01001",
+      "01001",
+      "01001"
+    ]
+  },
+  {
+    "synchronous": false,
+    "frequency": 1,
+    "length": 10,
+    "target_ratio": 0.5,
+    "generated_ratio": 0.2,
+    "states": [
+      "11001",
+      "11001",
+      "01001",
+      "01001",
+      "01001",
+      "01001",
+      "01001",
+      "01001",
+      "01001",
+      "01001"
+    ]
+  },
+  {
+    "synchronous": false,
+    "frequency": 1,
+    "length": 10,
+    "target_ratio": 0.5,
+    "generated_ratio": 0.5,
+    "states": [
+      "01111",
+      "01011",
+      "00011",
+      "00001",
+      "00001",
+      "01001",
+      "01001",
+      "01001",
+      "01001",
+      "01001"
+    ]
+  },
+  {
+    "synchronous": false,
+    "frequency": 1,
+    "length": 10,
+    "target_ratio": 0.5,
+    "generated_ratio": 0.5,
+    "states": [
+      "10001",
+      "10001",
+      "00001",
+      "00001",
+      "00001",
+      "01001",
+      "01001",
+      "01001",
+      "01001",
+      "01001"
+    ]
+  },
+  {
+    "synchronous": false,
+    "frequency": 1,
+    "length": 10,
+    "target_ratio": 0.5,
+    "generated_ratio": 0.5,
+    "states": [
+      "00001",
+      "00001",
+      "00001",
+      "00001",
+      "00001",
+      "01001",
+      "01001",
+      "01001",
+      "01001",
+      "01001"
+    ]
+  },
+  {
+    "synchronous": false,
+    "frequency": 1,
+    "length": 10,
+    "target_ratio": 0.5,
+    "generated_ratio": 0.5,
+    "states": [
+      "10111",
+      "10011",
+      "00011",
+      "00001",
+      "00001",
+      "01001",
+      "01001",
+      "01001",
+      "01001",
+      "01001"
+    ]
+  },
+  {
+    "synchronous": false,
+    "frequency": 1,
+    "length": 10,
+    "target_ratio": 0.5,
+    "generated_ratio": 0.5,
+    "states": [
+      "10001",
+      "11001",
+      "11001",
+      "11001",
+      "11001",
+      "01001",
+      "01001",
+      "01001",
+      "01001",
+      "01001"
+    ]
+  },
+  {
+    "synchronous": false,
+    "frequency": 1,
+    "length": 10,
+    "target_ratio": 0.5,
+    "generated_ratio": 0.5,
+    "states": [
+      "10000",
+      "10000",
+      "11000",
+      "11000",
+      "01000",
+      "01001",
+      "01001",
+      "01001",
+      "01001",
+      "01001"
+    ]
+  },
+  {
+    "synchronous": false,
+    "frequency": 1,
+    "length": 10,
+    "target_ratio": 0.5,
+    "generated_ratio": 0.5,
+    "states": [
+      "00011",
+      "00011",
+      "00001",
+      "00001",
+      "00001",
+      "01001",
+      "01001",
+      "01001",
+      "01001",
+      "01001"
+    ]
+  },
+  {
+    "synchronous": false,
+    "frequency": 1,
+    "length": 10,
+    "target_ratio": 0.5,
+    "generated_ratio": 0.5,
+    "states": [
+      "10010",
+      "10011",
+      "00011",
+      "00001",
+      "00001",
+      "01001",
+      "01001",
+      "01001",
+      "01001",
+      "01001"
+    ]
+  },
+  {
+    "synchronous": false,
+    "frequency": 1,
+    "length": 10,
+    "target_ratio": 0.5,
+    "generated_ratio": 0.5,
+    "states": [
+      "11001",
+      "11001",
+      "11001",
+      "11001",
+      "11001",
+      "01001",
+      "01001",
+      "01001",
+      "01001",
+      "01001"
+    ]
+  },
+  {
+    "synchronous": false,
+    "frequency": 1,
+    "length": 10,
+    "target_ratio": 0.5,
+    "generated_ratio": 0.5,
+    "states": [
+      "11000",
+      "11000",
+      "11001",
+      "11001",
+      "11001",
+      "01001",
+      "01001",
+      "01001",
+      "01001",
+      "01001"
+    ]
+  },
+  {
+    "synchronous": false,
+    "frequency": 1,
+    "length": 10,
+    "target_ratio": 0.5,
+    "generated_ratio": 0.4,
+    "states": [
+      "00111",
+      "00111",
+      "00011",
+      "00001",
+      "01001",
+      "01001",
+      "01001",
+      "01001",
+      "01001",
+      "01001"
+    ]
+  },
+  {
+    "synchronous": false,
+    "frequency": 1,
+    "length": 10,
+    "target_ratio": 0.5,
+    "generated_ratio": 0.2,
+    "states": [
+      "00001",
+      "00001",
+      "01001",
+      "01001",
+      "01001",
+      "01001",
+      "01001",
+      "01001",
+      "01001",
+      "01001"
+    ]
+  },
+  {
+    "synchronous": false,
+    "frequency": 1,
+    "length": 10,
+    "target_ratio": 0.5,
+    "generated_ratio": 0.5,
+    "states": [
+      "11010",
+      "01010",
+      "00010",
+      "00000",
+      "01000",
+      "01001",
+      "01001",
+      "01001",
+      "01001",
+      "01001"
+    ]
+  },
+  {
+    "synchronous": false,
+    "frequency": 1,
+    "length": 10,
+    "target_ratio": 0.5,
+    "generated_ratio": 0.5,
+    "states": [
+      "10000",
+      "10000",
+      "10000",
+      "11000",
+      "11001",
+      "01001",
+      "01001",
+      "01001",
+      "01001",
+      "01001"
+    ]
+  },
+  {
+    "synchronous": false,
+    "frequency": 1,
+    "length": 10,
+    "target_ratio": 0.5,
+    "generated_ratio": 0.5,
+    "states": [
+      "00011",
+      "00011",
+      "00001",
+      "00001",
+      "00001",
+      "01001",
+      "01001",
+      "01001",
+      "01001",
+      "01001"
+    ]
+  },
+  {
+    "synchronous": false,
+    "frequency": 1,
+    "length": 10,
+    "target_ratio": 0.5,
+    "generated_ratio": 0.3,
+    "states": [
+      "11011",
+      "11011",
+      "01011",
+      "01001",
+      "01001",
+      "01001",
+      "01001",
+      "01001",
+      "01001",
+      "01001"
+    ]
+  },
+  {
+    "synchronous": false,
+    "frequency": 1,
+    "length": 10,
+    "target_ratio": 0.5,
+    "generated_ratio": 0.5,
+    "states": [
+      "00011",
+      "00011",
+      "00001",
+      "00001",
+      "00001",
+      "01001",
+      "01001",
+      "01001",
+      "01001",
+      "01001"
+    ]
+  },
+  {
+    "synchronous": false,
+    "frequency": 1,
+    "length": 10,
+    "target_ratio": 0.5,
+    "generated_ratio": 0.3,
+    "states": [
+      "11101",
+      "11101",
+      "01101",
+      "01001",
+      "01001",
+      "01001",
+      "01001",
+      "01001",
+      "01001",
+      "01001"
+    ]
+  },
+  {
+    "synchronous": false,
+    "frequency": 1,
+    "length": 10,
+    "target_ratio": 0.5,
+    "generated_ratio": 0.5,
+    "states": [
+      "11000",
+      "01000",
+      "01000",
+      "01000",
+      "01000",
+      "01001",
+      "01001",
+      "01001",
+      "01001",
+      "01001"
+    ]
+  }
+]

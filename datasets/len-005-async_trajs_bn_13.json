@@ -1,0 +1,352 @@
+[
+  {
+    "synchronous": false,
+    "frequency": 1,
+    "length": 5,
+    "target_ratio": 0.5,
+    "generated_ratio": 0.4,
+    "states": [
+      "1001110",
+      "1001110",
+      "1000110",
+      "1000110",
+      "1000110"
+    ]
+  },
+  {
+    "synchronous": false,
+    "frequency": 1,
+    "length": 5,
+    "target_ratio": 0.5,
+    "generated_ratio": 0.4,
+    "states": [
+      "1001110",
+      "1001110",
+      "1000110",
+      "1000110",
+      "1000110"
+    ]
+  },
+  {
+    "synchronous": false,
+    "frequency": 1,
+    "length": 5,
+    "target_ratio": 0.5,
+    "generated_ratio": 0.4,
+    "states": [
+      "1011110",
+      "1010110",
+      "1000110",
+      "1000110",
+      "1000110"
+    ]
+  },
+  {
+    "synchronous": false,
+    "frequency": 1,
+    "length": 5,
+    "target_ratio": 0.5,
+    "generated_ratio": 0.4,
+    "states": [
+      "1001110",
+      "1001110",
+      "1000110",
+      "1000110",
+      "1000110"
+    ]
+  },
+  {
+    "synchronous": false,
+    "frequency": 1,
+    "length": 5,
+    "target_ratio": 0.5,
+    "generated_ratio": 0.4,
+    "states": [
+      "1011110",
+      "1001110",
+      "1000110",
+      "1000110",
+      "1000110"
+    ]
+  },
+  {
+    "synchronous": false,
+    "frequency": 1,
+    "length": 5,
+    "target_ratio": 0.5,
+    "generated_ratio": 0.4,
+    "states": [
+      "1010110",
+      "1010110",
+      "1000110",
+      "1000110",
+      "1000110"
+    ]
+  },
+  {
+    "synchronous": false,
+    "frequency": 1,
+    "length": 5,
+    "target_ratio": 0.5,
+    "generated_ratio": 0.4,
+    "states": [
+      "1001010",
+      "1000010",
+      "1000110",
+      "1000110",
+      "1000110"
+    ]
+  },
+  {
+    "synchronous": false,
+    "frequency": 1,
+    "length": 5,
+    "target_ratio": 0.5,
+    "generated_ratio": 0.4,
+    "states": [
+      "1011110",
+      "1010110",
+      "1000110",
+      "1000110",
+      "1000110"
+    ]
+  },
+  {
+    "synchronous": false,
+    "frequency": 1,
+    "length": 5,
+    "target_ratio": 0.5,
+    "generated_ratio": 0.4,
+    "states": [
+      "1011110",
+      "1010110",
+      "1000110",
+      "1000110",
+      "1000110"
+    ]
+  },
+  {
+    "synchronous": false,
+    "frequency": 1,
+    "length": 5,
+    "target_ratio": 0.5,
+    "generated_ratio": 0.4,
+    "states": [
+      "1101110",
+      "1001110",
+      "1000110",
+      "1000110",
+      "1000110"
+    ]
+  },
+  {
+    "synchronous": false,
+    "frequency": 1,
+    "length": 5,
+    "target_ratio": 0.5,
+    "generated_ratio": 0.4,
+    "states": [
+      "1001110",
+      "1001110",
+      "1000110",
+      "1000110",
+      "1000110"
+    ]
+  },
+  {
+    "synchronous": false,
+    "frequency": 1,
+    "length": 5,
+    "target_ratio": 0.5,
+    "generated_ratio": 0.4,
+    "states": [
+      "1001110",
+      "1001110",
+      "1000110",
+      "1000110",
+      "1000110"
+    ]
+  },
+  {
+    "synchronous": false,
+    "frequency": 1,
+    "length": 5,
+    "target_ratio": 0.5,
+    "generated_ratio": 0.4,
+    "states": [
+      "1001110",
+      "1001110",
+      "1000110",
+      "1000110",
+      "1000110"
+    ]
+  },
+  {
+    "synchronous": false,
+    "frequency": 1,
+    "length": 5,
+    "target_ratio": 0.5,
+    "generated_ratio": 0.4,
+    "states": [
+      "1010110",
+      "1010110",
+      "1000110",
+      "1000110",
+      "1000110"
+    ]
+  },
+  {
+    "synchronous": false,
+    "frequency": 1,
+    "length": 5,
+    "target_ratio": 0.5,
+    "generated_ratio": 0.4,
+    "states": [
+      "1001110",
+      "1001110",
+      "1000110",
+      "1000110",
+      "1000110"
+    ]
+  },
+  {
+    "synchronous": false,
+    "frequency": 1,
+    "length": 5,
+    "target_ratio": 0.5,
+    "generated_ratio": 0.4,
+    "states": [
+      "1001110",
+      "1001110",
+      "1000110",
+      "1000110",
+      "1000110"
+    ]
+  },
+  {
+    "synchronous": false,
+    "frequency": 1,
+    "length": 5,
+    "target_ratio": 0.5,
+    "generated_ratio": 0.4,
+    "states": [
+      "0001110",
+      "1001110",
+      "1000110",
+      "1000110",
+      "1000110"
+    ]
+  },
+  {
+    "synchronous": false,
+    "frequency": 1,
+    "length": 5,
+    "target_ratio": 0.5,
+    "generated_ratio": 0.4,
+    "states": [
+      "1000010",
+      "1000010",
+      "1000110",
+      "1000110",
+      "1000110"
+    ]
+  },
+  {
+    "synchronous": false,
+    "frequency": 1,
+    "length": 5,
+    "target_ratio": 0.5,
+    "generated_ratio": 0.4,
+    "states": [
+      "1001111",
+      "1001110",
+      "1000110",
+      "1000110",
+      "1000110"
+    ]
+  },
+  {
+    "synchronous": false,
+    "frequency": 1,
+    "length": 5,
+    "target_ratio": 0.5,
+    "generated_ratio": 0.4,
+    "states": [
+      "1001110",
+      "1001110",
+      "1000110",
+      "1000110",
+      "1000110"
+    ]
+  },
+  {
+    "synchronous": false,
+    "frequency": 1,
+    "length": 5,
+    "target_ratio": 0.5,
+    "generated_ratio": 0.4,
+    "states": [
+      "1101110",
+      "1001110",
+      "1000110",
+      "1000110",
+      "1000110"
+    ]
+  },
+  {
+    "synchronous": false,
+    "frequency": 1,
+    "length": 5,
+    "target_ratio": 0.5,
+    "generated_ratio": 0.4,
+    "states": [
+      "1011110",
+      "1001110",
+      "1000110",
+      "1000110",
+      "1000110"
+    ]
+  },
+  {
+    "synchronous": false,
+    "frequency": 1,
+    "length": 5,
+    "target_ratio": 0.5,
+    "generated_ratio": 0.4,
+    "states": [
+      "1001100",
+      "1001110",
+      "1000110",
+      "1000110",
+      "1000110"
+    ]
+  },
+  {
+    "synchronous": false,
+    "frequency": 1,
+    "length": 5,
+    "target_ratio": 0.5,
+    "generated_ratio": 0.4,
+    "states": [
+      "1001010",
+      "1001110",
+      "1000110",
+      "1000110",
+      "1000110"
+    ]
+  },
+  {
+    "synchronous": false,
+    "frequency": 1,
+    "length": 5,
+    "target_ratio": 0.5,
+    "generated_ratio": 0.2,
+    "states": [
+      "1000110",
+      "1000110",
+      "1000110",
+      "1000110",
+      "1000110"
+    ]
+  }
+]

@@ -295,6 +295,8 @@ The output dataset is saved in JSON format as specified by ```--tg-ds-filename``
 }
 ```
 
+As you can see, the generated ratio does not always equal the target ratio. In some cases it's impossible to reach a target ratio of a certain value. As an example, suppose we're doing synchronous transitions for ```bn_size=5```, ```traj_len=100```, ```target_ratio = 0.8```. This would mean that in the trajectory, we want to have 80 transient and 20 attractor states samples. For BN of size ```bn_size=5```, there are $2^5 = 32$ possible state combinations, so in the most optimistic scenario, there would be 31 transient states and 1 attractor state. This would mean that for such a BN, the highest generated ratio would be ```0.31``` instead of ```0.8```. The larger the BN, the more probable it is to reach the target_ratio value, but for smaller BNs, the ```generated_ratio``` values might heavily deviate from what the ```target_ratio``` is.
+
 ### __Conversion to text-based format__
 
 After generating the JSON dataset, the script converts the trajectories into text files using the ```convert_trajectories_to_txt``` function.
