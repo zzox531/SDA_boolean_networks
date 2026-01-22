@@ -1,6 +1,0 @@
-tqdm
-matplotlib
-boolean.py
-networkx
-scipy
-pandas

@@ -36,8 +36,7 @@ def read_network():
     functions = functions[1:]
     values = list(var_dict.values())
     functions.extend([var_dict[key] for key in inputs])
-    print(values)
-    print(functions)
+
     return values, functions
 
 def generate_network(

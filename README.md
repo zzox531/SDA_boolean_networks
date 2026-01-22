@@ -567,6 +567,21 @@ We investigated the optimal proportion of transient states versus attractor stat
 5. ** Impact of Sampling Frequency**
 We analyzed the effect of the sampling interval (frequency) on inference quality. As the sampling interval increases (sampling every $k$-th step where $k > 1$), the reconstruction accuracy drops significantly.Bayesian Network inference relies on detecting direct causal dependencies between $S_t$ and $S_{t+1}$. When we skip steps (e.g., $S_t \rightarrow S_{t+2}$), we lose the immediate state transitions that define the network's logic. The algorithm tries to infer direct links from indirect relationships, leading to false positives (direct edges where a path should exist) or missed connections.
 
+# __Part II__
+We chose a chicken sex determination dataset with a size 10. We decided that the Scoring Criteria don't make a difference, so we went with BDE. 
+Best parameters turned out to be: 
+1. Synchronous update mode, 
+2. 100-110 time steps, 
+3. The ratio of transient states to total sequence length between 0.2 and 0.4, 
+4. Sampling frequency = 1. 
+
+To test this dataset, following scripts were runned:
+- part2.py parses the dataset into the right format.
+- chicken_test.sh generates trajectory datasets with the best parameters and performs trajectory interference.
+- distance_measure_chicken.py calculates similarity level and outputs it into results.txt file. 
+
+From the results we can see that the 
+
 ### Division of work
 - Jakub Misiaszek:
     - Boolean Network generation framework (```bn_generator.py```)

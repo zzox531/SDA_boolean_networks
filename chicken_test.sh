@@ -6,12 +6,12 @@ BN_PREF="chicken_dataset/bn_"
 
 mkdir -p logs chicken_inference
 
-ratio_lo=0.25
-ratio_hi=0.4
+ratio_lo=0.5
+ratio_hi=0.5
 fr_lo=1
 fr_hi=1
-len_lo=25
-len_hi=25
+len_lo=40
+len_hi=60
 sync_no=10
 async_no=0
 seed=42
