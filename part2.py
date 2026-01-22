@@ -22,22 +22,26 @@ def read_network():
         data = json.load(file)
         variables += data["variable-names"]
         inputs += data["input-names"]
+        
+    var_dict = {i: f"x{nr}" for nr, i in enumerate(variables+inputs)}
     
     with open(functions_path, 'r') as file:
         for line in file:
             _, fun = line.split(',', 1)
             fun = fun.strip()
+            for key, value in var_dict.items():
+                fun = fun.replace(key, value)
             functions.append(fun)
 
-    variables += inputs
     functions = functions[1:]
-    functions.extend(inputs)
-    return variables, functions
+    values = list(var_dict.values())
+    functions.extend([var_dict[key] for key in inputs])
+    print(values)
+    print(functions)
+    return values, functions
 
 def generate_network(
         filename_prefix: str,
-        visuals: bool,
-        visual_dir: str, 
 ):
     """
     This function generates boolean network object from a chosen chicken model.
@@ -60,21 +64,12 @@ def generate_network(
         "parents_sync": parents_sync_serializable
     }
     os.makedirs(os.path.dirname(filename_prefix), exist_ok=True)
-    with open(filename_prefix + '2137.json', "w") as f:
+    with open(filename_prefix + '.json', "w") as f:
         json.dump(res, f, indent=2)
-    
-    if visuals:
-        
-        os.makedirs(os.path.dirname(visual_dir), exist_ok=True)
-        if bn.num_nodes < 6:
-            bn.draw_state_transition_system(f"{visual_dir}BN2137.png")
         
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("-d", "--ds-path", type=str, default="datasets/bn_", help="Dataset filename prefix (.json format)")
-    parser.add_argument("--draw", action=argparse.BooleanOptionalAction, help="Generate visual representation of BNs")
-    parser.add_argument("--draw-path", type=str, default="visual/", help="Directory for visual representation of BNs")
-
+    parser.add_argument("-d", "--ds-path", type=str, default="chicken_dataset/bn_0", help="Dataset filename prefix (.json format)")
     args = parser.parse_args()
 
     # Set up logging
@@ -86,7 +81,7 @@ def main():
         format="%(asctime)s [%(levelname)s] %(message)s"
     )
 
-    generate_network(args.ds_path, args.draw, args.draw_path)
+    generate_network(args.ds_path)
     
     
     
