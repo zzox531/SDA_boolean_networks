@@ -12,7 +12,7 @@ fr_lo=1
 fr_hi=1
 len_lo=40
 len_hi=100
-sync_no=10
+sync_no=25
 async_no=0
 seed=42
 
