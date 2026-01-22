@@ -362,6 +362,34 @@ This bash script is the main orchestration entry point for running a suite of in
 
 The goal is to evaluate how the inferred Dynamic Bayesian Network structures depend on the type and amount of observed dynamics (synchronous vs asynchronous trajectories, and sample size).
 
+### __Output format__
+
+The BNFinder2 can output the inferred DBN in a couple of different formats. We decided to include two of them, `.sif` and `.cpd`, for visualization and for further analysis.
+
+- SIF (Simple Interaction File) is the simplest and most compact format available. It only describes general interactions between variables inferred by the BNF2. Each row of the file looks like ```xi +/- xj``` and means that variable $x_i$ (parent) has positive or negative influence over variable $x_j$ (child). While not very informative, this format can be easily visualised on a graph. The graph is also much more readable than boolean network graph, which vertex count explodes exponentially.
+
+- CPD file is ready python dictionary describing the inferred DBN. For each variable $x_i$ it contains a `<vertex dictionary>` in the following format:
+
+```
+<x_i> : {
+  'vals' : <possible variable values, {0, 1} for BN>,
+  'pars' : <list of parents of variable x_i>,
+  'cpds' : <conditional probability distribution for x_i>
+}
+```
+
+Field `'cpds'` contains a dictionary where each key is a list of values of parent variables, and value is another dictionary with probability distribution:
+
+```
+[0, 1, ..., 1] : {
+  0 : <conditional probability for 0>,
+  1 : <conditional probability for 1>
+},
+...
+```
+
+This format contains all information about inferred DBN and allows us to later measure the accuracy of the fit. At the same time, the out-of-the-box python dictionary can be easily imported into the script. Readable format was also helpful for interpretation of the results during the process.
+
 ### __Example usage__
 
 ```sh
