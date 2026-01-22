@@ -47,7 +47,7 @@ output_file_BDE_cpd="chicken_inference/cpd/chicken_test-BDE-sync-0.cpd"
 output_file_MDL_sif="chicken_inference/sif/chicken_test-MDL-sync-0.sif"
 output_file_MDL_sif="chicken_inference/cpd/chicken_test-MDL-sync-0.cpd"
 
-bnf -e "chicken_dataset/chicken_bn_0_trajectories.txt" -n "$output_file_BDE_sif" -c "$output_file_BDE_cpd" -v -s "BDE" -g -l 3 -k 16
-bnf -e "chicken_dataset/chicken_bn_0_trajectories.txt" -n "$output_file_MDL_sif" -c "$output_file_MDL_cpd" -v -s "MDL" -g -l 3 -k 16
+bnf -e "chicken_dataset/chicken_bn_0_trajectories.txt" -n "$output_file_BDE_sif" -c "$output_file_BDE_cpd" -v -s "BDE" -g -k 16
+bnf -e "chicken_dataset/chicken_bn_0_trajectories.txt" -n "$output_file_MDL_sif" -c "$output_file_MDL_cpd" -v -s "MDL" -g -k 16
 
 echo "=== CHICKEN INFERENCE COMPLETE ==="
