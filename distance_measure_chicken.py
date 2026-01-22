@@ -9,7 +9,7 @@ from distance_measure import parse_source, parse_infer, spectral_distance, delta
 def main():
     parser = argparse.ArgumentParser() 
     parser.add_argument("-s", "--source", type=str, help="Path to source BN (.json)", default="chicken_dataset/bn_0.json")
-    parser.add_argument("-i", "--inferred", type=str, help="Path to inferred BN (.cpd)", default="chicken_inference/cpd/chicken_test-sync-BDE-0.cpd")
+    parser.add_argument("-i", "--inferred", type=str, help="Path to inferred BN (.cpd)", default="chicken_inference/cpd/chicken_test-BDE-sync-0.cpd")
     args = parser.parse_args()
 
     os.makedirs("logs", exist_ok=True)
