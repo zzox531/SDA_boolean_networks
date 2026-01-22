@@ -61,17 +61,18 @@ The variables names are set from `x0` up to `x15`.
 After that, for each of the nodes $x_i$ and corresponding functions $f_i$ of the BN, the script:
 - Generates a number $n_i$ of parent nodes of $x_i$
 - Samples a set of parents $S_i$ of size $n_i$ from all the nodes using ```numpy.random.choice()``` (let's number variables within the set as $\{x_{1,S_i}, x_{2,S_i}, ... \}$)
-- Generates $2^{n_i}$ numbers between 0 and 1 and saves them inside a list. (Let's call $J$ a set of such numbers $0 \leq j \leq 2^{n_i} - 1 $, that on index $j$, number $1$ was generated)
+- Generates $J = \{0, 1\}^{2^{n_i}}$ numbers between 0 and 1 and saves them inside a list. Those values serve as value table for transition function. (Let's call $K$ a set of such numbers $0 \leq k \leq 2^{n_i} - 1 $, that on index $k$, number $1$ was generated) 
+- The logical clause is constructed using **disjunctive normal form**:
 
-    If a number at index $j$ is equal to 1, then the clause $c_j$ corresponding to this index is added to the whole function via a logic `OR` operation.
+    Each index $k$ and corresponding value $j_k$ represent one row of the value table. $j$ is the result value and $k$ is a binary mask representing state of parent variables. For each true row (with $j_k = 1$) we create a clause $c_k$:
 
-    Clause correspondence is as following:
+    We take the binary mask representation of parents' states $k$ and set of parents $S_i$. For each $TRUE$ parent node $l$ (represented by a lit $l$-th bit in $k$) we add to the clause $x_{l, S_i}$ and for each $FALSE$ parent node we add $\neg x_{l, S_i}$, all connected by $AND$ operators.
 
-    We take a binary representation of the number $j$ to create a clause $c$. If the bit is lit on position $k$, then clause contains value $x_{k,S_i}$. If the bit is not lit, the clause contains value $\neg x_{k,S_i}$. The values are then ```AND```'ed within the clause. For example - $n_i = 3, S_i = \{x_0, x_2, x_4\}, j = 5 = 101_2$. Clause $c_j = (x_0 \wedge \neg x_2 \wedge x_4)$. 
+    For example - $n_i = 3, S_i = \{x_0, x_2, x_4\}, k = 5 = 101_2$. Clause $c_k = (x_0 \wedge \neg x_2 \wedge x_4)$. 
 
-    The entire clause $C = c_{j_1} \vee c_{j_2} \vee ... \vee c_{j_m}$, where $j_0, j_1, ..., j_m \in J$, $m = |J|$.
+    We combine the entire clause with $OR$ operators like this: $C = c_{k_1} \vee c_{k_2} \vee ... \vee c_{k_m}$, where $k_0, k_1, ..., k_m \in JK$, $m = |K|$.
 
-    We had to take under consideration such a case, where $|J| = 0$, then we simply take a logical $AND$ of all parents $x_{k,S_i}$ and logically and it with $0$ to make sure the value of the function stays as a ```FALSE```.
+    We had to take under consideration such a case, where $|K| = 0$, where the **DNF** form returns an empty clause. In this case we simply take a logical $AND$ of all parents $x_{1, S_i}, ..., x_{n_i, S_i}$ (to later recall the parent set of a node) and $FALSE$ clause to force the function to always evaluate to 0.
 
 After generating all the functions, the Boolean Network object is created.
 
