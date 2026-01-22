@@ -562,7 +562,7 @@ The following scripts were executed to test this dataset:
 - chicken_test.sh – generates trajectory datasets using the optimal parameters and performs trajectory inference
 - distance_measure_chicken.py – calculates similarity metrics and writes results to results.txt
 
-The results are okay. This network presents a greater challenge due to its complexity - several nodes have significantly more than three parent nodes, which increases the difficulty of accurate inference.
+The results are strong. Although this network presents a greater challenge due to its complexity (some nodes have significantly more than three parent nodes), the inference nonetheless achieves accurate results.
 
 ### Division of work
 - Jakub Misiaszek:
