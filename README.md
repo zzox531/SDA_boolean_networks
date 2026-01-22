@@ -520,25 +520,6 @@ The rows will represent:
 3. Scoring Criterion: BDE and Asynchronous Update Mode
 4. Scoring Criterion: MDL and Asynchronous Update Mode
 
-
-Our analysis of the simulation data yielded several key insights regarding the inference process:
-1. **Scoring Criteria (MDL vs. BDE)**
-We compared the networks reconstructed using Minimal Description Length (MDL) and Bayesian-Dirichlet equivalence (BDE) scoring functions.
-There was negligible difference in reconstruction accuracy between the two criteria. For the majority of the Boolean networks tested, both scoring functions converged to structures with nearly identical similarity.
-
-2. **Update Modes (Synchronous vs. Asynchronous)**
-We analyzed how the update mode of the training data affects the ability of BNFinder2 to recover the true structure. As predicted, networks inferred from Synchronous data were significantly more similar to the ground truth than those inferred from Asynchronous data. Synchronous transitions provide deterministic state pairs ($S_t \rightarrow S_{t+1}$) which simplify the learning of dependencies compared to the stochastic nature of asynchronous updates.
-
-3. **Impact of Trajectory Length**
-We tested the relationship between the length of the simulation trajectories (amount of data) and the accuracy of the result.
-While accuracy generally improves with longer sequences, we observed a "saturation point" at approximately 100 time steps. Beyond this length, the marginal improvement in similarity scores diminished significantly. For synchronous data specifically, the inferred network structure stabilized relatively quickly and showed no structure change with trajectory length.
-
-4. **Transient-to-Length Ratio**
-We investigated the optimal proportion of transient states versus attractor states in the training data.
-The highest reconstruction accuracy was consistently observed when the ratio of transient states to total sequence length was between 0.2 and 0.4.
-Ratios significantly lower than this range (dominated by attractors) likely resulted in overfitting to steady states.
-Ratios significantly higher (dominated by transients) failed to provide enough repeated patterns for the probabilistic model to solidify.
-
 ### Evaluation Methodology
 To measure the similarity between the Ground Truth ($G_{GT}$) and Inferred ($G_{INF}$) networks, we implemented two structure-based graph distance measures:
 - **Spectral Distance:** Calculated as the Euclidean distance between the sorted eigenvalues of the Laplacian matrices of the two graphs.
@@ -564,23 +545,24 @@ We analyzed how the update mode of the training data affects the ability of BNFi
 We tested the relationship between the length of the simulation trajectories (amount of data) and the accuracy of the result. While accuracy generally improves with longer sequences, we observed a "saturation point" at approximately 40 time steps for synchronous updates. Beyond this length, the marginal improvement in similarity scores diminished significantly. For synchronous data specifically, the inferred network structure stabilized relatively quickly and showed no structure change with trajectory length.
 4. **Transient-to-Length Ratio**
 We investigated the optimal proportion of transient states versus attractor states in the training data.Generally, a higher proportion of transient states correlates with better reconstruction accuracy. Transient states provide unique state transitions that expose the underlying logic of the network, whereas attractors (repeating cycles) provide redundant information. While our plots suggest "the higher, the better," we encountered practical limitations in generating trajectories with extremely high transient ratios (>0.8). In these ranges, it becomes algorithmically difficult to avoid falling into an attractor, meaning the effective ratio in those datasets was likely lower than the target. This explains why the performance gain plateaus or behaves inconsistently at the extreme high end. We found that ratios between 0.3 and 0.6 consistently yielded strong reconstruction performance.
-5. ** Impact of Sampling Frequency**
+5. **Impact of Sampling Frequency**
 We analyzed the effect of the sampling interval (frequency) on inference quality. As the sampling interval increases (sampling every $k$-th step where $k > 1$), the reconstruction accuracy drops significantly.Bayesian Network inference relies on detecting direct causal dependencies between $S_t$ and $S_{t+1}$. When we skip steps (e.g., $S_t \rightarrow S_{t+2}$), we lose the immediate state transitions that define the network's logic. The algorithm tries to infer direct links from indirect relationships, leading to false positives (direct edges where a path should exist) or missed connections.
 
 # __Part II__
-We chose a chicken sex determination dataset with a size 10. We decided that the Scoring Criteria don't make a difference, so we went with BDE. 
-Best parameters turned out to be: 
-1. Synchronous update mode, 
-2. 100-110 time steps, 
-3. The ratio of transient states to total sequence length between 0.2 and 0.4, 
-4. Sampling frequency = 1. 
+We selected a chicken sex determination dataset comprising 10 nodes. After preliminary testing, we determined that the scoring criteria (BDE vs MDL) had negligible impact on results, so we proceeded with BDE.
 
-To test this dataset, following scripts were runned:
-- part2.py parses the dataset into the right format.
-- chicken_test.sh generates trajectory datasets with the best parameters and performs trajectory interference.
-- distance_measure_chicken.py calculates similarity level and outputs it into results.txt file. 
+The optimal parameters were identified as follows:
+1. Synchronous update mode
+2. 100–110 time steps
+3. Transient-to-total sequence length ratio between 0.2 and 0.4
+4. Sampling frequency of 1
 
-From the results we can see that the 
+The following scripts were executed to test this dataset:
+- part2.py – parses the dataset into our format
+- chicken_test.sh – generates trajectory datasets using the optimal parameters and performs trajectory inference
+- distance_measure_chicken.py – calculates similarity metrics and writes results to results.txt
+
+The results are okay. This network presents a greater challenge due to its complexity - several nodes have significantly more than three parent nodes, which increases the difficulty of accurate inference.
 
 ### Division of work
 - Jakub Misiaszek:

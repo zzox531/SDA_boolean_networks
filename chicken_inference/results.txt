@@ -1,6 +1,3 @@
-Random parameters
-Spectral Similarity: 5.7523
-DeltaCon Similarity: 0.3112
-
-Spectral Similarity: 6.3268
-DeltaCon Similarity: 0.2976
+Best parameters: 
+Spectral Similarity: 4.5369
+DeltaCon Similarity: 0.3505
