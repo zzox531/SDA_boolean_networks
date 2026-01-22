@@ -520,3 +520,23 @@ We investigated the optimal proportion of transient states versus attractor stat
 The highest reconstruction accuracy was consistently observed when the ratio of transient states to total sequence length was between 0.2 and 0.4.
 Ratios significantly lower than this range (dominated by attractors) likely resulted in overfitting to steady states.
 Ratios significantly higher (dominated by transients) failed to provide enough repeated patterns for the probabilistic model to solidify.
+
+### Division of work
+- Jakub Misiaszek:
+    - Boolean Network generation framework (```bn_generator.py```)
+    - Experiments with Boolean Network distance metrics (```distance_measure.py```)
+    - Research on BNFinder2 saving formats, interpretation of such formats
+- Ignacy Kozakiewicz:
+    - BN Trajectory generation framework (```trajectory_generator.py```)
+    - ```perform_tests.sh``` & ```trajectory_inference.sh```  pipelines for effective testing & BN inferring
+    - Work on efficiency & time complexity of implemented inferring solutions.
+- Piotr Maksymiuk:
+    - Research and implementation of Spectral Distance & DeltaCon similarity (```distance_measure.py```)
+    - Analysis of inferred Boolean Networks
+- Joanna Mali:
+    - Research on ready-to-go BN datasets, picking an appropriate one
+    - Parsing the dataset into a proper .json format
+    - Inference of the picked dataset (```chicken_test.sh```)
+    - Analysis of the inference results
+
+Each contributor described their part within the report. 
