@@ -126,7 +126,7 @@ def parse_all_infer(
     logging.info(f"Parsed inferred BNs DataFrame:\n{infer_bns.head()}")
     return infer_bns
 
-def spectral_similarity(G: nx.DiGraph, H: nx.DiGraph):
+def spectral_distance(G: nx.DiGraph, H: nx.DiGraph):
     # Compute eigenvalues and sort them
     eig_1 = nx.laplacian_spectrum(G)
     eig_1.sort()
@@ -136,35 +136,30 @@ def spectral_similarity(G: nx.DiGraph, H: nx.DiGraph):
     # Compute spectral distance
     spectral_distance = np.linalg.norm(eig_1 - eig_2)
     logging.info(f'Spectral distance: {spectral_distance}\nSpectral similarity: {1 / (1 + spectral_distance)}')
-    return 1 / (1 + spectral_distance)
+    return spectral_distance
 
 def delta_con_similarity(G1, G2):
     """
     Calculates DeltaCon similarity for small graphs (dense matrices).
     Ideal for N <= 1000 nodes.
     """
-    # 1. Align Nodes
-    # Get all unique nodes from both graphs and sort them to ensure matching indices
+    # Align Nodes
     nodes = sorted(list(set(G1.nodes()) | set(G2.nodes())))
     n = len(nodes)
     
-    # 2. Get Dense Adjacency Matrices
-    # nodelist ensures row 0 corresponds to the same node in both matrices
+    # Get Dense Adjacency Matrices
     A1 = nx.to_numpy_array(G1, nodelist=nodes)
     A2 = nx.to_numpy_array(G2, nodelist=nodes)
     
-    # 3. Create Degree Matrices (Diagonal)
-    # Sum of rows gives the degree of each node
+    # Create Degree Matrices (Diagonal)
     D1 = np.diag(np.sum(A1, axis=1))
     D2 = np.diag(np.sum(A2, axis=1))
     
-    # 4. Determine Epsilon (Weighting Factor)
-    # 1 / (1 + max_degree across both graphs)
+    # Determine Epsilon (Weighting Factor)
     max_d = max(D1.max(), D2.max())
     epsilon = 1 / (1 + max_d)
     
-    # 5. Compute Affinity Matrices (S)
-    # Formula: S = inverse(I + eps^2 * D - eps * A)
+    # Compute Affinity Matrices (S)
     I = np.eye(n)
     
     # Matrix 1
@@ -175,14 +170,11 @@ def delta_con_similarity(G1, G2):
     M2 = I + (epsilon**2 * D2) - (epsilon * A2)
     S2 = np.linalg.inv(M2)
     
-    # 6. Calculate Matusita Distance
-    # Sum of squared differences of square roots
-    # Note: We take absolute value before sqrt to handle tiny negative floating point errors
+    # Calculate Matusita Distance
     diff = np.sqrt(np.abs(S1)) - np.sqrt(np.abs(S2))
     matusita_dist = np.sqrt(np.sum(diff**2))
     
-    # 7. Convert to Similarity (Inverse of Distance)
-    # Result is between 0 (totally different) and 1 (identical)
+    # Convert to Similarity (Inverse of Distance)
     similarity = 1 / (1 + matusita_dist)
     
     return similarity
@@ -194,6 +186,8 @@ def draw_plot(source: dict[int, nx.DiGraph], inferred: pd.DataFrame, test_name: 
         (False, True, "Async BDE"),
         (False, False, "Async MDL")
     ]
+
+    inferred_test = inferred[inferred['type'] == test_name]
 
     # Create 4 rows x 2 columns grid
     fig, axes = plt.subplots(4, 2, figsize=(16, 20))
@@ -221,14 +215,14 @@ def draw_plot(source: dict[int, nx.DiGraph], inferred: pd.DataFrame, test_name: 
         sorted_x = None
 
         # Plot all BNs
-        num_bns = inferred['bn_number'].nunique()
+        num_bns = inferred_test['bn_number'].nunique()
         
         for bn_id in range(num_bns): 
-            sliced = inferred[
-                (inferred['bn_number'] == bn_id) & 
-                (inferred['type'] == test_name) & 
-                (inferred['bde'] == is_bde) &
-                (inferred['sync'] == is_sync)
+            sliced = inferred_test[
+                (inferred_test['bn_number'] == bn_id) & 
+                (inferred_test['type'] == test_name) & 
+                (inferred_test['bde'] == is_bde) &
+                (inferred_test['sync'] == is_sync)
             ]
             
             sliced = sliced.sort_values(by='value', ascending=True)
@@ -246,7 +240,7 @@ def draw_plot(source: dict[int, nx.DiGraph], inferred: pd.DataFrame, test_name: 
             logging.info(f"Processing BN {bn_id} for sync={is_sync}, bde={is_bde}, test={test_name}, values={x_values}")
             for i, G_inferred in enumerate(sliced['graph']):
                 logging.info(f"Comparing source BN {bn_id} with inferred graph for value {x_values[i]}\nG1 structure: Nodes {G_source.nodes}, Edges {G_source.edges}\nG2 structure: Nodes {G_inferred.nodes}, Edges {G_inferred.edges}")
-                spec = spectral_similarity(G_source, G_inferred)
+                spec = spectral_distance(G_source, G_inferred)
                 y_spectral.append(spec)
                 
                 dc = delta_con_similarity(G_source, G_inferred)
@@ -289,8 +283,10 @@ def draw_plot(source: dict[int, nx.DiGraph], inferred: pd.DataFrame, test_name: 
     fig.legend(handles, labels, loc='lower center', ncol=6, bbox_to_anchor=(0.5, 0.01))
 
     plt.tight_layout()
-    plt.subplots_adjust(bottom=0.10, top=0.93) 
-    plt.show()
+    plt.subplots_adjust(bottom=0.10, top=0.93)
+    os.makedirs("imgs", exist_ok=True)
+    plt.savefig("imgs/" + test_name + ".png")
+    plt.close()
 
 def main():
     parser = argparse.ArgumentParser()
@@ -311,10 +307,11 @@ def main():
     inferred = parse_all_infer(f'{args.inference_dir}')
 
     if args.test_name is None:
-        for test in inferred['type'].unique():
-            draw_plot(source, inferred, test, 'Distance Measures between Source and Inferred BNs', 'Compared value')
+        draw_plot(source, inferred, 'ratio', 'Distance Measures between Source and Inferred BNs for different transient number to sequence length ratio\nfreq = 1; length = 10 - 50; number of trajectories = 25', 'Transient num to length ratio')
+        draw_plot(source, inferred, 'len', 'Distance Measures between Source and Inferred BNs for different sequence length\nfreq = 1; ratio = 0.5; number of trajectories = 25', 'Length of a sequence')
+        draw_plot(source, inferred, 'freq', 'Distance Measures between Source and Inferred BNs for different frequency of sampling\nlength = 10 - 50; ratio = 0.5; number of trajectories = 25', 'Frequency of sampling')
     else:
-        draw_plot(source, inferred, args.test_name, 'Distance Measures between Source and Inferred BNs', 'Transient num to length ratio')
+        draw_plot(source, inferred, args.test_name, 'Distance Measures between Source and Inferred BNs', 'Compared value')
 
 if __name__ == "__main__":
     main()
