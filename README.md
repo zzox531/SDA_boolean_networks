@@ -562,7 +562,11 @@ The following scripts were executed to test this dataset:
 - chicken_test.sh – generates trajectory datasets using the optimal parameters and performs trajectory inference
 - distance_measure_chicken.py – calculates similarity metrics and writes results to results.txt
 
-The results are strong. Although this network presents a greater challenge due to its complexity (some nodes have significantly more than three parent nodes), the inference nonetheless achieves accurate results.
+Results from results.txt file:
+- Spectral Similarity: **3.6491**
+- DeltaCon Similarity: **0.3708**
+
+The results are strong. Although this network presents a greater challenge due to its complexity (some nodes have significantly more than three parent nodes), the inference nonetheless achieves accurate results compared to those from our tests.
 
 ### Division of work
 - Jakub Misiaszek:
