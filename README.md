@@ -553,8 +553,8 @@ We selected a chicken sex determination dataset comprising 10 nodes. After preli
 
 The optimal parameters were identified as follows:
 1. Synchronous update mode
-2. 100–110 time steps
-3. Transient-to-total sequence length ratio between 0.2 and 0.4
+2. 40-100 time steps
+3. Transient-to-total sequence length ratio between 0.3 and 0.6
 4. Sampling frequency of 1
 
 The following scripts were executed to test this dataset:
